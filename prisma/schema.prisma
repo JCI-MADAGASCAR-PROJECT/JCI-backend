@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//===============================THESE ARE THE USER ROLES IN THE SYSTEM.======================================= 
+enum Role {
+  SUPER_ADMIN
+  ADMIN_NATIONAL
+  ADMIN_LOCAL
+  ADMIN_E_COMMERCE
+  NONE
+}
+
+//===============================THESE ARE THE USER ROLES IN THE SYSTEM.======================================= 
+
+//===============================THESE ARE THE USER MODELS.======================================= 
+// User model representing the users in the system.
+//The None role is just a placeholder if a problem happen with role assignment. Or account creations fail. But never should it be used as a permanent role. And never be shown as choices
+// NB: the user must have a role assigned, defaulting to NONE if not specified.
+// If the role is an local admin "ADMNIN_LOCAL", the organisationLocalId must be specified., if not , OrganisationLocalId should be null.
+model User {
+  id                  Int                @id @default(autoincrement())
+  email               String             @unique
+  password            String
+  role                Role               @default(NONE)
+  organisationLocalId Int?
+  organisationLocal   OrganisationLocal? @relation(fields: [organisationLocalId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  lastLogin           DateTime?
+}
+
+//===============================THESE ARE THE USER MODELS.======================================= 
+
+//===============================THESE ARE THE NATIONAL OFFICE AND PAST PRESIDENT MODELS.======================================= 
+//National Office member and the Past President list managed by the ADMIN_NATIONAL or the SUPER ADMIN only.
+
+model BureauNational {
+  id        Int       @id @default(autoincrement())
+  name      String
+  firstName String
+  title     String    @unique
+  imgUrl    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model PastPresident {
+  id        Int       @id @default(autoincrement())
+  name      String
+  year      Int       @unique
+  imgUrl    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+//===============================THESE ARE THE NATIONAL OFFICE AND PAST PRESIDENT MODELS.======================================= 
+
+//===============================THESE ARE THE ZONE MODELS.======================================= 
+// Zone and Organisation Local models representing the hierarchical structure of the organisation.
+//Zone are managed by the ADMIN_NATIONAL or the SUPER ADMIN only.
+model Zone {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  imgUrl             String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  zonePresident      ZonePresident?
+  organisationLocals OrganisationLocal[]
+}
+
+//===============================THESE ARE THE ZONE MODELS.======================================= 
+
+//===============================THESE ARE THE ZONE PRESIDENT MODELS.======================================= 
+
+//Only after the zone is created can a zone president be created and assigned to a specific zone.
+model ZonePresident {
+  id        Int       @id @default(autoincrement())
+  name      String
+  quote     String
+  imgUrl    String
+  contact   String
+  zoneId    Int       @unique
+  zone      Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+//===============================THESE ARE THE ZONE PRESIDENT MODELS.======================================= 
+
+//===============================THESE ARE THE ORGANISATION LOCAL MODELS.======================================= 
+//Only after the zone is created can an organisation local be created and assigned to a specific zone.
+model OrganisationLocal {
+  id                        Int                        @id @default(autoincrement())
+  name                      String                     
+  localisation              String
+  phone                     String
+  email                     String
+  mapImgUrl                 String
+  logoImgUrl                String
+  zoneId                    Int
+  zone                      Zone                       @relation(fields: [zoneId], references: [id])
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  users                     User[]
+  members                   Member[]
+  organisationLocalContents OrganisationLocalContent[]
+  events                    Event[]
+  @@unique([name, zoneId])
+}
+
+model OrganisationLocalContent {
+  id                  Int               @id @default(autoincrement())
+  content             String
+  organisationLocalId Int
+  organisationLocal   OrganisationLocal @relation(fields: [organisationLocalId], references: [id], onDelete: Cascade)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+//===============================THESE ARE THE ORGANISATION LOCAL MODELS.======================================= 
+
+///===============================THESE ARE THE MEMBER MODELS.======================================= 
+//Only after the organisation local is created can a member be created and assigned to a specific local organisation .
+model Member {
+  id                  Int               @id @default(autoincrement())
+  name                String
+  imgUrl              String
+  title               String
+  ticket              String
+  organisationLocalId Int
+  organisationLocal   OrganisationLocal @relation(fields: [organisationLocalId], references: [id], onDelete: Cascade)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+//===============================THESE ARE THE MEMBER MODELS.======================================= 
+
+// ===============================THESE ARE THE EVENT MODELS.======================================= 
+//Event can be created by national or local organisations
+//OlId is optionnal (Organisation Local ID), only for ol Event. if an event is created by a local organisation, this field should be filled.
+//If an event is created by a national organisation, the organisationLocalId should be null.
+//And if an Event is assigned to a specific Ol, that Ol is the only one which has access to the event , and manage it
+model Event {
+  id                  Int                @id @default(autoincrement())
+  title               String
+  type                String
+  imgUrl              String
+  content             String
+  date                DateTime
+  organisationLocalId Int?
+  organisationLocal   OrganisationLocal? @relation(fields: [organisationLocalId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  images              EventImage[]
+  files               EventFile[]
+}
+
+//images assigned to a specific event
+model EventImage {
+  id        Int      @id @default(autoincrement())
+  imgUrl    String
+  eventId   Int
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+//files assigned to a specific event
+model EventFile {
+  id        Int      @id @default(autoincrement())
+  fileUrl   String
+  eventId   Int
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// ===============================THESE ARE THE EVENT MODELS.======================================= 
+
+// ===============================THESE ARE THE ITEM MODELS FOR THE E-COMMERCE SIDE.======================================= 
+model Item {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String
+  imgUrl      String
+  price       Int
+  createdAt   DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ===============================THESE ARE THE ITEM MODELS.======================================= 
