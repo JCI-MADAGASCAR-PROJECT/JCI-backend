@@ -2,8 +2,8 @@ import * as organisationContentService from "../services/organisationContentServ
 
 export const fetchOrganisationLocalesContentByOrganisationLocal = async (req, res) => {
     try {
-        const organisationLocalesContent = await organisationContentService.fetchOrganisationLocalesContentByOrganisationLocal(req.params.zoneId);
-        return res.status(200).json({organisationLocalesContent});
+        const organisationLocalesContent = await organisationContentService.fetchOrganisationLocalesContentByOrganisationLocal(req.params.organisationLocalId);
+        return res.status(200).json(organisationLocalesContent);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Organisation Locales Content not fetched !"});
@@ -24,9 +24,9 @@ export const create = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
-        const {content, organisationLocalId} = req.body;
+        const {content} = req.body;
         const id = req.params.id;
-        await organisationContentService.update(content, organisationLocalId, id);
+        await organisationContentService.update(content, id);
         return res.status(200).json({message:"Organisation Local Content updated!"});
     } catch (error) {
         console.log(error);

@@ -3,7 +3,7 @@ import * as zonePresidentService from "../services/zonePresidentServices.js";
 export const fetchPsd = async (req, res) => {
     try {
         const zonePresidents = await zonePresidentService.fetchPsd(req.params.zoneId);
-        return res.status(200).json({zonePresidents});
+        return res.status(200).json(zonePresidents);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Zone Presidents not fetched !"});

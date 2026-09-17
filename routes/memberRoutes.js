@@ -1,10 +1,7 @@
 import { Router } from "express";
-import { 
-            create, 
-            deleteMember, 
-            fetchAllByOrganisationLocal, 
-            update 
-        } from "../controllers/memberControllers.js";
+import {create, deleteMember, fetchAllByOrganisationLocal, update} from "../controllers/memberControllers.js";
+import { uploadAvatar, addImagePathAvatar } from "../middleware/uploadMiddleware.js";
+
 
 const router = Router();
 
@@ -60,7 +57,7 @@ router.get("/:organisationLocalId",fetchAllByOrganisationLocal);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/", uploadAvatar, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/organisation-locales/members/{id}:
@@ -100,7 +97,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id", uploadAvatar, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/organisation-locales/members/{id}:

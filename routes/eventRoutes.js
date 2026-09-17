@@ -7,6 +7,7 @@ import {
             fetchAllEventsByNational,
             update 
         } from "../controllers/eventControllers.js";
+import { uploadEvent, addImagePathEvents } from "../middleware/uploadMiddleware.js";
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.get("/",fetchAllEvents);
  *       500:
  *         description: Server error
  */
-router.get("/:organisationLocalId",fetchAllEventsByOrganisationLocal);
+router.get("/organisation-locales/:organisationLocalId",fetchAllEventsByOrganisationLocal);
 
 /**
  * @swagger
@@ -55,7 +56,7 @@ router.get("/:organisationLocalId",fetchAllEventsByOrganisationLocal);
  *     summary: Get all events by National ID
  *     tags:
  *       - Event
- *     parameters:[]
+ *     parameters: []
  *     responses:
  *       200:
  *         description: List of events
@@ -95,7 +96,7 @@ router.get("/national", fetchAllEventsByNational);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/", uploadEvent, addImagePathEvents ,create);
 /**
  * @swagger
  * /api/v1/events/{id}:
@@ -137,7 +138,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id", uploadEvent, addImagePathEvents, update);
 /**
  * @swagger
  * /api/v1/events/{id}:

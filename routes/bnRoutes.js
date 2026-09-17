@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { create, deleteBNMember, fetchAll, update } from "../controllers/bnControllers.js";
+import { uploadAvatar, addImagePathAvatar, titleExisting, titleExistingUpdate } from "../middleware/uploadMiddleware.js";
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/", uploadAvatar,titleExisting, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/bn/{id}:
@@ -84,7 +85,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",uploadAvatar,titleExistingUpdate, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/bn/{id}:

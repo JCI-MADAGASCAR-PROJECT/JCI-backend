@@ -3,7 +3,7 @@ import * as pastPresidentService from "../services/pastPresidentServices.js";
 export const fetchAll = async (req, res) => {
     try {
         const pastPresidents = await pastPresidentService.fetchAll();
-        return res.status(200).json({pastPresidents});
+        return res.status(200).json(pastPresidents);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Past Presidents not fetched !"});
@@ -14,6 +14,7 @@ export const fetchAll = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const {name, year, imgUrl} = req.body;
+        console.log(req.body);
         await pastPresidentService.create(name, year, imgUrl);
         return res.status(201).json({message:"Past President created!"});
     } catch (error) {

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { create, deletePastPresident, fetchAll, update } from "../controllers/pastPresidentControllers.js";
+import { uploadAvatar, addImagePathAvatar } from "../middleware/uploadMiddleware.js";
 
 const router = Router();
 /**
@@ -44,7 +45,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/", uploadAvatar, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/past-presidents/{id}:
@@ -80,7 +81,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id", uploadAvatar, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/past-presidents/{id}:

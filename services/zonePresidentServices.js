@@ -1,4 +1,6 @@
 import prisma from "../DB/db.config.js"
+import fs from "fs/promises";
+import path from "path";
 
 export const fetchPsd = async (zoneId) => {
     return await prisma.zonePresident.findFirst({
@@ -21,6 +23,18 @@ export const create = async (name, quote, contact, imgUrl, zoneId) =>{
 }
 
 export const update = async (name, quote, contact, imgUrl, zoneId, id) =>{
+    if(imgUrl) {
+        const zonePsd = await prisma.zonePresident.findUnique({
+            where: { id: Number(id) }
+        });
+        if (zonePsd && zonePsd.imgUrl) {
+            const filePath = path.join(
+                process.cwd(),
+                zonePsd.imgUrl.replace(/^[/\\]/, "")    
+            );
+            await fs.unlink(filePath);
+        }
+    }
     return await prisma.zonePresident.update({
         where:{id:Number(id)},
         data:{
@@ -34,6 +48,18 @@ export const update = async (name, quote, contact, imgUrl, zoneId, id) =>{
 }
 
 export const deleteZonePresident = async (id) =>{
+    const psd = await prisma.zonePresident.findUnique({
+        where: { id: Number(id) }
+    });
+
+    if (!psd) {
+    throw new Error("Zone president not found");
+    }
+    const filePath = path.join(
+        process.cwd(),
+        psd.imgUrl.replace(/^[/\\]/, "")    
+    );
+    await fs.unlink(filePath);
     return await prisma.zonePresident.delete({
         where:{id:Number(id)}
     })

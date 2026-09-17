@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create, deleteUser, fetchAll, fetchUser, update } from "../controllers/userControllers.js";
+import { create, deleteUser, fetchAll, fetchUser, update, updatePassword } from "../controllers/userControllers.js";
 
 const router = Router();
 
@@ -56,12 +56,14 @@ router.get("/:id", fetchUser);
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
  *               email:
  *                 type: string
  *               password:
  *                 type: string
+ *               role:
+ *                 type: string
+ *               ol_id:
+ *                 type: number
  *     responses:
  *       201:
  *         description: User created successfully
@@ -90,11 +92,7 @@ router.post("/", create);
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
  *               email:
- *                 type: string
- *               password:
  *                 type: string
  *     responses:
  *       200:
@@ -105,6 +103,39 @@ router.post("/", create);
  *         description: Server error
  */
 router.put("/:id",update);
+
+/**
+ * @swagger
+ * /api/v1/users/{id}/password:
+ *   put:
+ *     summary: Update a user's password by ID
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the user to update the password for
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.put("/:id/password", updatePassword);
 /**
  * @swagger
  * /api/v1/users/{id}:

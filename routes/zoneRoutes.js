@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { create, deleteZone, fetchAll, update } from "../controllers/zoneControllers.js";
+import { create, deleteZone, fetchAll, update, fetchByZoneName } from "../controllers/zoneControllers.js";
+import { uploadAvatar, addImagePathAvatar} from "../middleware/uploadMiddleware.js";
 
 const router = Router();
 
@@ -17,6 +18,28 @@ const router = Router();
  *         description: Server error
  */
 router.get("/",fetchAll);
+
+/**
+ * @swagger
+ * /api/v1/zones/{zoneName}:
+ *   get:
+ *     summary: Get a zone by name
+ *     tags:
+ *       - Zones
+ *     parameters:
+ *       - in: path
+ *         name: zoneName
+ *         required: true
+ *         description: Name of the zone to fetch
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Zone fetched successfully
+ *       500:
+ *         description: Server error
+ */
+router.get("/:zoneName", fetchByZoneName);
 /**
  * @swagger
  * /api/v1/zones:
@@ -41,7 +64,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",uploadAvatar,addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/zones/{id}:
@@ -75,7 +98,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",uploadAvatar,addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/zones/{id}:

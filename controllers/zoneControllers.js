@@ -3,10 +3,20 @@ import * as zoneService from "../services/zoneServices.js";
 export const fetchAll = async (req, res) => {
     try {
         const zones = await zoneService.fetchAll();
-        return res.status(200).json({zones});
+        return res.status(200).json(zones);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Zones not fetched !"});
+    }
+}
+export const fetchByZoneName = async (req, res) => {
+    try {
+        const zoneName = req.params.zoneName;
+        const zone = await zoneService.fetchByZoneName(zoneName);
+        return res.status(200).json(zone);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Zone not fetched !"});
     }
 }
 

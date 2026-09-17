@@ -3,7 +3,7 @@ import * as memberService from "../services/memberServices.js";
 export const fetchAllByOrganisationLocal = async (req, res) => {
     try {
         const members = await memberService.fetchAllByOrganisationLocal(req.params.organisationLocalId);
-        return res.status(200).json({members});
+        return res.status(200).json(members);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Members not fetched !"});
@@ -24,9 +24,9 @@ export const create = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
-        const {name, imgUrl, title, ticket, organisationLocalId} = req.body;
+        const {name, imgUrl, title, ticket} = req.body;
         const id = req.params.id;
-        await memberService.update(name, imgUrl, title, ticket, organisationLocalId, id);
+        await memberService.update(name, imgUrl, title, ticket, id);
         return res.status(200).json({message:"Member updated!"});
     } catch (error) {
         console.log(error);

@@ -1,7 +1,45 @@
 import { Router } from "express";
-import { create, deleteOrganisationLocal, fetchOrganisationLocalesByZone, update } from "../controllers/organisationLocaleControllers.js";
+import { create, deleteOrganisationLocal, fetchOrganisationLocalesByZone, update, fetchAllId, fetchAllByiD } from "../controllers/organisationLocaleControllers.js";
+import { uploadOl, addImagePathOlMap, addImagePathOlLogo } from '../middleware/uploadMiddleware.js';
 
 const router = Router();
+
+/**
+ * @swagger
+ * /api/v1/organisation-locales/:
+ *   get:
+ *     summary: Get all Organisation Locale IDs
+ *     tags:
+ *       - Organisation Locale
+ *     responses:
+ *       200:
+ *         description: List of Organisation Locale IDs
+ *       500:
+ *         description: Server error
+ */
+router.get("/", fetchAllId);
+
+/**
+ * @swagger
+ * /api/v1/organisation-locales/details/{id}:
+ *   get:
+ *     summary: Get an Organisation Locale by ID
+ *     tags:
+ *       - Organisation Locale
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the Organisation Locale to fetch
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Organisation Locale details
+ *       500:
+ *         description: Server error
+ */
+router.get("/details/:id", fetchAllByiD);
 
 /**
  * @swagger
@@ -24,6 +62,7 @@ const router = Router();
  *         description: Server error
  */
 router.get("/:zoneId",fetchOrganisationLocalesByZone);
+
 
 /**
  * @swagger
@@ -59,7 +98,7 @@ router.get("/:zoneId",fetchOrganisationLocalesByZone);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",uploadOl,addImagePathOlMap, addImagePathOlLogo, create);
 /**
  * @swagger
  * /api/v1/organisation-locales/{id}:
@@ -103,7 +142,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",uploadOl,addImagePathOlMap, addImagePathOlLogo, update);
 /**
  * @swagger
  * /api/v1/organisation-locales/{id}:

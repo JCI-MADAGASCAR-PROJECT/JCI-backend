@@ -3,7 +3,7 @@ import * as userService from "../services/userServices.js";
 export const fetchAll = async (req, res) => {
     try {
         const users = await userService.fetchAll();
-        return res.status(200).json({users});
+        return res.status(200).json(users);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Users not fetched !"});
@@ -34,15 +34,33 @@ export const create = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
-        const {email, password, role} = req.body;
+        const { email } = req.body;
         const id = req.params.id;
-        await userService.update(email, password, role, id);
-        return res.status(201).json({message:"user updated!"});
+
+        await userService.update(email, id);
+
+        return res.status(201).json({ message: "user updated!" });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Update failed!"});
+        return res.status(error.status || 500).json({ message: error.message || "Update failed!" });
     }
-}
+};
+
+export const updatePassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+        const id = req.params.id;
+
+        await userService.updatePassword(password, id);
+
+        return res.status(201).json({ message: "Password updated!" });
+    } catch (error) {
+        console.log(error);
+        return res.status(error.status || 500).json({ message: error.message || "Update failed!" });
+    }
+};
+
+
 export const deleteUser = async (req, res) => {
     try {
         const id = req.params.id;

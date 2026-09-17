@@ -1,9 +1,10 @@
 import * as bnService from "../services/bnServices.js";
 
+
 export const fetchAll = async (req, res) => {
     try {
         const bureauxNationaux = await bnService.fetchAll();
-        return res.status(200).json({bureauxNationaux});
+        return res.status(200).json(bureauxNationaux);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Bureau National Members not fetched !"});

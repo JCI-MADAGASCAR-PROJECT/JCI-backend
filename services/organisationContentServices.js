@@ -17,12 +17,11 @@ export const create = async (content, organisationLocalId) =>{
     })
 }
 
-export const update = async (content, organisationLocalId, id) =>{
+export const update = async (content, id) =>{
     return await prisma.organisationLocalContent.update({
         where:{id:Number(id)},
         data:{
             content,
-            organisationLocalId:Number(organisationLocalId),
         }
     })
 }

@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { create, deleteZonePresident, fetchPsd, update } from "../controllers/zonePresidentControllers.js";
+import { addImagePathAvatar, uploadAvatar } from './../middleware/uploadMiddleware.js';
 
 const router = Router();
 
 /**
  * @swagger
- * /api/v1/zone/presidents/{zoneId}:
+ * /api/v1/zones/presidents/{zoneId}:
  *   get:
  *     summary: Get all Zone Presidents by zone ID
  *     tags:
@@ -27,7 +28,7 @@ router.get("/:zoneId",fetchPsd);
 
 /**
  * @swagger
- * /api/v1/zone/presidents:
+ * /api/v1/zones/presidents:
  *   post:
  *     summary: Create a new Zone President
  *     tags:
@@ -55,10 +56,10 @@ router.get("/:zoneId",fetchPsd);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",uploadAvatar,addImagePathAvatar, create);
 /**
  * @swagger
- * /api/v1/zone/presidents/{id}:
+ * /api/v1/zones/presidents/{id}:
  *   put:
  *     summary: Update a Zone President by ID
  *     tags:
@@ -95,10 +96,10 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",uploadAvatar,addImagePathAvatar, update);
 /**
  * @swagger
- * /api/v1/zone/presidents/{id}:
+ * /api/v1/zones/presidents/{id}:
  *   delete:
  *     summary: Delete a Zone President by ID
  *     tags:

@@ -11,16 +11,17 @@ import MemberRoutes from "./memberRoutes.js"
 import EventRoutes from "./eventRoutes.js"
 import EventFilesRoutes from "./eventFilesRoutes.js"
 import EventImagesRoutes from "./eventImagesRoutes.js"
-
+import AuthRoutes from "./authRoutes.js"
 
 const router = Router();
 
+router.use("/api/v1/auth", AuthRoutes);
 router.use("/api/v1/users",UserRoutes);
 router.use("/api/v1/bn",BNRoutes);
 router.use("/api/v1/past-presidents",PastPresidentRoutes);
 router.use("/api/v1/zones",ZoneRoutes);
 router.use("/api/v1/items",ItemRoutes);
-router.use("/api/v1/zone/presidents",ZonePresidentRoutes);
+router.use("/api/v1/zones/presidents",ZonePresidentRoutes);
 router.use("/api/v1/organisation-locales",OrganisationLocalRoutes);
 router.use("/api/v1/organisation-locales/contents",OrganisationContentRoutes);
 router.use("/api/v1/organisation-locales/members",MemberRoutes);
