@@ -3,7 +3,7 @@ import prisma from "../DB/db.config.js"
 export const fetchAll = async () => {
     return await prisma.item.findMany({
         orderBy: {
-            id: "desc"
+            name: "asc"
         }
     });
 };

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { create, deleteOrganisationLocalContent, fetchOrganisationLocalesContentByOrganisationLocal, update } from "../controllers/organisationContentControllers.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -23,7 +24,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.get("/:organisationLocalId",fetchOrganisationLocalesContentByOrganisationLocal);
+router.get("/:organisationLocalId", fetchOrganisationLocalesContentByOrganisationLocal);
 
 /**
  * @swagger
@@ -49,7 +50,7 @@ router.get("/:organisationLocalId",fetchOrganisationLocalesContentByOrganisation
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), create);
 /**
  * @swagger
  * /api/v1/organisation-locales/contents/{id}:
@@ -83,7 +84,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), update);
 /**
  * @swagger
  * /api/v1/organisation-locales/contents/{id}:
@@ -106,6 +107,6 @@ router.put("/:id",update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteOrganisationLocalContent);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), deleteOrganisationLocalContent);
 
 export default router;

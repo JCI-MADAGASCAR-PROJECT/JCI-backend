@@ -1,4 +1,6 @@
 import prisma from "../DB/db.config.js"
+import fs from "fs/promises";
+import path from "path";
 
 export const fetchAllByEventId = async (eventId) => {
     return await prisma.eventFile.findMany({
@@ -29,6 +31,18 @@ export const create = async (fileUrl, eventId) =>{
 // }
 
 export const deleteEventFile = async (id) =>{
+    const eventFile = await prisma.eventFile.findUnique({
+        where: { id: Number(id) }
+        });
+
+        if (!eventFile) {
+        throw new Error("Event file not found");
+        }
+        const filePath = path.join(
+            process.cwd(),
+            eventFile.fileUrl.replace(/^[/\\]/, "")    
+        );
+    await fs.unlink(filePath);
     return await prisma.eventFile.delete({
         where:{id:Number(id)}
     })

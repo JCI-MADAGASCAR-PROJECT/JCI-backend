@@ -3,12 +3,22 @@ import * as eventService from "../services/eventServices.js"
 export const fetchAllEvents = async (req, res) => {
     try {
         const events = await eventService.fetchAllEvents();
-        return res.status(200).json({events});
+        return res.status(200).json(events);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Events not fetched !"});
     }
 }
+export const fetchAllActuEvents = async (req, res) => {
+    try {
+        const events = await eventService.fetchAllActuEvents();
+        return res.status(200).json(events);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Events not fetched !"});
+    }
+}
+
 
 export const fetchAllEventsByOrganisationLocal = async (req, res) => {
     try {
@@ -24,7 +34,7 @@ export const fetchAllEventsByOrganisationLocal = async (req, res) => {
 export const fetchAllEventsByNational = async (req, res) => {
     try {
         const events = await eventService.fetchAllEventsByNational();
-        return res.status(200).json({events});
+        return res.status(200).json(events);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Events not fetched !"});
@@ -34,11 +44,27 @@ export const fetchAllEventsByNational = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const {title, type, imgUrl, content, date, organisationLocalId} = req.body;
+        if(!title || !type || !imgUrl || !content || !date || !organisationLocalId){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
         await eventService.create(title, type, imgUrl, content, date, organisationLocalId);
-        return res.status(201).json({message:"Event created!"});
+        return res.status(201).json({message:"Evenement créé avec succès !"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Event not created !"});
+        return res.status(500).json({ message: "Evenement non créé !" });
+    }
+}
+export const createNational = async (req, res) => {
+    try {
+        const {title, type, imgUrl, content, date} = req.body;
+        if(!title || !type || !imgUrl || !content || !date){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
+        await eventService.createNational(title, type, imgUrl, content, date);
+        return res.status(201).json({message:"Evenement créé avec succès !"});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Evenement non créé !" });
     }
 }
 
@@ -47,19 +73,29 @@ export const update = async (req, res) => {
         const {title, type, imgUrl, content, date} = req.body;
         const id = req.params.id;
         await eventService.update(title, type, imgUrl, content, date, id);
-        return res.status(200).json({message:"Event updated!"});
+        return res.status(200).json({message:"Evenement mis à jour avec succès !"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Event not updated!"});
+        return res.status(500).json({ message: "Evenement non mis à jour !" });
     }
 }
+export const fetchEventById = async (req, res) => {
+    try {
+        const event = await eventService.fetchEventById(req.params.eventId);
+        return res.status(200).json(event);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Evenement non récupéré !" });
+    }
+}
+
 export const deleteEvent = async (req, res) => {
     try {
         const id = req.params.id;
         await eventService.deleteEvent(id);
-        return res.status(200).json({message:"Event deleted!"});
+        return res.status(200).json({message:"Evenement supprimé avec succès !"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Event not deleted!"});
+        return res.status(500).json({ message: "Evenement non supprimé !" });
     }
 }

@@ -20,25 +20,32 @@ export const fetchAll = async () => {
 
 export const fetchUser = async (id) => {
     return await prisma.user.findUnique({
-        where: { id: Number(id) }
+        where: { id: Number(id) },  
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            organisationLocalId: true,
+        }
+    });
+};
+
+export const fetchByEmail = async (email) => {
+    return await prisma.user.findUnique({
+        where: { email },
     });
 };
 
 export const create = async (email, password, role, ol_id) =>{
-
     if(!email || !password){
-        return  res.status(400).json({message:"Fill all fields"})
+    throw new Error("Veuillez remplir tous les champs");
     }
     if(role == "ADMIN_LOCAL" && !ol_id){
-        return  res.status(400).json({message:"Organisation Local ID is required for ADMIN_LOCAL role"})
+        throw new Error("L'identifiant de l'organisation locale est requis pour le rôle ADMIN_LOCAL");  
     }
-    const response = await prisma.user.findUnique({
-        where:{
-            email,
-        }
-    })
-    if(response){
-        return  res.status(400).json({message:"Email already used!. Please choose another email"})
+    const existingUser = await fetchByEmail(email); 
+    if (existingUser) {
+        throw new Error("Email deja utilisé. Veuillez choisir un autre email");
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     if(role == "ADMIN_LOCAL" ){
@@ -64,7 +71,7 @@ export const create = async (email, password, role, ol_id) =>{
 
 export const update = async (email, id) => {
     if (!email) {
-    throw new Error("FILL_ALL_FIELDS");
+    throw new Error("Veuillez remplir tous les champs");
     }
 
     const user = await prisma.user.findUnique({
@@ -74,7 +81,7 @@ export const update = async (email, id) => {
     });
 
     if (!user) {
-    throw new Error("USER_NOT_FOUND");
+    throw new Error("Utilisateur non trouvé");
     }
 
     const emailUsed = await prisma.user.findFirst({
@@ -87,7 +94,7 @@ export const update = async (email, id) => {
     });
 
     if (emailUsed) {
-    throw new Error("EMAIL_ALREADY_USED");
+    throw new Error("Email deja utilisé. Veuillez choisir un autre email");
     }
 
     return await prisma.user.update({
@@ -102,7 +109,7 @@ export const update = async (email, id) => {
 
 export const updatePassword = async (password, id) => {
     if (!password) {
-    throw new Error("FILL_ALL_FIELDS");
+    throw new Error("Veuillez remplir tous les champs");
     }
 
     const user = await prisma.user.findUnique({
@@ -112,7 +119,7 @@ export const updatePassword = async (password, id) => {
     });
 
     if (!user) {
-    throw new Error("USER_NOT_FOUND");
+    throw new Error("Utilisateur non trouvé");
     }
 
     // No need to check for email uniqueness when updating password
@@ -127,9 +134,9 @@ export const updatePassword = async (password, id) => {
     });
 };
 
-export const updateAdmin = async (email,old_password, new_password, id) =>{
-    if(!email || !old_password || !new_password){
-        return  res.status(400).json({message:"Fill all fields"})
+export const updateAdmin = async (email,password, id) =>{
+    if(!email || !password){
+        throw new Error("Veuillez remplir tous les champs");
     }
     const response = await prisma.user.findUnique({
         where:{
@@ -137,7 +144,7 @@ export const updateAdmin = async (email,old_password, new_password, id) =>{
         }
     });
     if (response) {
-        return res.status(400).json({message:"Email already used!. Please choose another email"})
+        throw new Error("Email deja utilisé. Veuillez choisir un autre email");
     }
     const user = await prisma.user.findFirst({
         where:{
@@ -145,19 +152,18 @@ export const updateAdmin = async (email,old_password, new_password, id) =>{
         }
     });
     if(!user){
-        return res.status(404).json({message:"Invalid credentials"})
+        throw new Error("Identifiants invalides");
     };
 
-    const IsMatch = await bcrypt.compare(old_password, user.password);
-
-    if(!IsMatch){
-        return res.status(401).json({message:"Password not correct"})
+    if(!isAdmin || isAdmin.role !== "SUPER_ADMIN"){
+        throw new Error("Utilisateur non autorisé");
     }
+
     return await prisma.user.update({
         where:{id:Number(id)},
         data:{
             email,
-            password: await bcrypt.hash(new_password, 10),
+            password: await bcrypt.hash(password, 10),
         }
     })
 }

@@ -12,6 +12,7 @@ import EventRoutes from "./eventRoutes.js"
 import EventFilesRoutes from "./eventFilesRoutes.js"
 import EventImagesRoutes from "./eventImagesRoutes.js"
 import AuthRoutes from "./authRoutes.js"
+import EmailRoutes from "./emailRoutes.js"
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.use("/api/v1/organisation-locales/members",MemberRoutes);
 router.use("/api/v1/events",EventRoutes);
 router.use("/api/v1/events/files",EventFilesRoutes);
 router.use("/api/v1/events/images",EventImagesRoutes);
-    
+router.use("/api/v1/email",EmailRoutes);
 
 
 

@@ -13,6 +13,7 @@ export const protect = async (req, res, next) =>{
                 id:decoded.id,
             },
             select:{
+                id:true,
                 email:true,
                 role:true,
                 organisationLocalId:true
@@ -27,3 +28,34 @@ export const protect = async (req, res, next) =>{
         res.status(400).json({message:"Not authorized, token failed."})
     }
 }
+
+
+export const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Accès interdit" });
+    }
+
+    next();
+  };
+};
+
+export const requireOrganisationAccess = (getOrganisationId) => {
+  return async (req, res, next) => {
+    if (req.user.role === "SUPER_ADMIN" || req.user.role === "ADMIN_NATIONAL") {
+      return next();
+    }
+
+    if (req.user.role !== "ADMIN_LOCAL") {
+      return res.status(403).json({ message: "Accès interdit" });
+    }
+
+    const targetOrganisationId = await getOrganisationId(req);
+
+    if (targetOrganisationId !== req.user.organisationLocalId) {
+      return res.status(403).json({ message: "Cette ressource appartient à une autre organisation" });
+    }
+
+    next();
+  };
+};

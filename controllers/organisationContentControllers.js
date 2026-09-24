@@ -14,6 +14,9 @@ export const fetchOrganisationLocalesContentByOrganisationLocal = async (req, re
 export const create = async (req, res) => {
     try {
         const {content, organisationLocalId} = req.body;
+        if(!content || !organisationLocalId){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
         await organisationContentService.create(content, organisationLocalId);
         return res.status(201).json({message:"Organisation Local Content created!"});
     } catch (error) {

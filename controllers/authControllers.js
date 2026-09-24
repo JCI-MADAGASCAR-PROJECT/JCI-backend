@@ -1,6 +1,7 @@
 import prisma from "../DB/db.config.js";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
+
 const cookieOptions ={
     httpOnly: true,
     secure : process.env.NODE_ENV === 'production',
@@ -35,13 +36,13 @@ export const login = async (req, res) =>{
         });
 
         if(!response){
-            return res.status(404).json({message:"Invalid credentials"})
+            return res.status(404).json({message:"Identifiants invalides"})
         };
 
         const IsMatch = await bcrypt.compare(password, response.password);
 
         if(! IsMatch){
-            return res.status(401).json({message:"Password not correct"})
+            return res.status(401).json({ message: "Identifiants invalides"})
         }
         await prisma.user.update({
             where: {
@@ -62,7 +63,7 @@ export const login = async (req, res) =>{
         return res.status(200).json(user)
 
     } catch (error) {
-        res.status(400).json({message:"Er", data:error })
+        res.status(400).json({message:"Erreur", data:error })
     }
 }
 

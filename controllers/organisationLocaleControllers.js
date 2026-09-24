@@ -23,6 +23,13 @@ export const fetchAllId = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const {name, localisation, phone, email, mapImgUrl, logoImgUrl, zoneId} = req.body;
+        if(!name || !localisation || !phone || !email || !mapImgUrl || !logoImgUrl || !zoneId){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
+        const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if(!isEmailValid){
+            return res.status(400).json({ message: "Veuillez fournir un email valide" });
+        }
         await organisationLocaleService.create(name, localisation, phone, email, mapImgUrl, logoImgUrl, zoneId);
         return res.status(201).json({message:"Organisation Locale created!"});
     } catch (error) {

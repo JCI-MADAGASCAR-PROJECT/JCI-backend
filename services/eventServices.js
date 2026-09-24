@@ -3,11 +3,31 @@ import fs from "fs/promises";
 import path from "path";
 
 export const fetchAllEvents = async () => {
-    return await prisma.event.findMany();
+    return await prisma.event.findMany({
+        orderBy: {
+            date: 'desc'
+        },
+    });
+};
+export const fetchAllActuEvents = async () => {
+    return await prisma.event.findMany({
+        orderBy: {
+            date: 'desc'
+        },
+        take: 4,
+    });
+};
+export const fetchEventById = async (eventId) => {
+    return await prisma.event.findUnique({
+        where: { id: Number(eventId) }
+    });
 };
 
 export const fetchAllEventsByOrganisationLocal = async (organisationLocalId) => {
     return await prisma.event.findMany({
+        orderBy: {
+            date: 'desc'
+        },
         where: {
             organisationLocalId: Number(organisationLocalId)
         }
@@ -16,6 +36,9 @@ export const fetchAllEventsByOrganisationLocal = async (organisationLocalId) => 
 
 export const fetchAllEventsByNational = async () => {
     return await prisma.event.findMany({
+        orderBy: {
+            date: 'desc'
+        },
         where: {
             organisationLocalId: null,
         }
@@ -31,6 +54,17 @@ export const create = async (title, type, imgUrl, content, date, organisationLoc
             content,
             date: new Date(date),
             organisationLocalId: Number(organisationLocalId)
+        }
+    })
+}
+export const createNational = async (title, type, imgUrl, content, date) =>{
+    return await prisma.event.create({
+        data:{
+            title,
+            type,
+            imgUrl,
+            content,
+            date: new Date(date),
         }
     })
 }

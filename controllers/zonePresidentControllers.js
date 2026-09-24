@@ -14,6 +14,9 @@ export const fetchPsd = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const {name, quote, contact, imgUrl, zoneId} = req.body;
+        if(!name || !quote || !contact || !imgUrl || !zoneId){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
         await zonePresidentService.create(name, quote, contact, imgUrl, zoneId);
         return res.status(201).json({message:"Zone President created!"});
     } catch (error) {

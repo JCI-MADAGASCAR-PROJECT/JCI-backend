@@ -1,7 +1,16 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { login, logOut, reAuth } from "../controllers/authControllers.js";
 import { protect } from "../middleware/authMiddleware.js";
 const router = Router();
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Trop de tentatives. Réessayez plus tard." }
+});
 
 /**
  * @swagger
@@ -44,7 +53,7 @@ router.get("/me",protect,reAuth);
  *       500:
  *         description: Server error
  */
-router.post("/login",login)
+router.post("/login",loginLimiter,login)
 
 /**
  * @swagger

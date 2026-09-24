@@ -1,13 +1,20 @@
 import { Router } from "express";
 import { 
             create, 
+            createNational, 
             deleteEvent, 
             fetchAllEvents, 
+            fetchAllActuEvents,
             fetchAllEventsByOrganisationLocal, 
             fetchAllEventsByNational,
-            update 
+            update,
+            fetchEventById
         } from "../controllers/eventControllers.js";
-import { uploadEvent, addImagePathEvents } from "../middleware/uploadMiddleware.js";
+import { 
+            uploadEvent, 
+            addImagePathEvents 
+        } from "../middleware/uploadMiddleware.js";
+import { protect, authorize, requireOrganisationAccess } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -29,7 +36,23 @@ router.get("/",fetchAllEvents);
 
 /**
  * @swagger
- * /api/v1/events/{organisationLocalId}:
+ * /api/v1/events/actu:
+ *   get:
+ *     summary: Get the latest 4 events
+ *     tags:
+ *       - Event
+ *     parameters: []
+ *     responses:
+ *       200:
+ *         description: List of latest 4 events
+ *       500:
+ *         description: Server error
+ */
+router.get("/actu", fetchAllActuEvents);
+
+/**
+ * @swagger
+ * /api/v1/events/organisation-locales/{organisationLocalId}:
  *   get:
  *     summary: Get all events by Organisation Local ID
  *     tags:
@@ -48,12 +71,33 @@ router.get("/",fetchAllEvents);
  *         description: Server error
  */
 router.get("/organisation-locales/:organisationLocalId",fetchAllEventsByOrganisationLocal);
+/**
+ * @swagger
+ * /api/v1/events/details/{eventId}:
+ *   get:
+ *     summary: Get an event by ID
+ *     tags:
+ *       - Event
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         description: ID of the Event to fetch
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Event details
+ *       500:
+ *         description: Server error
+ */
+router.get("/details/:eventId", fetchEventById);
 
 /**
  * @swagger
- * /api/v1/events:
+ * /api/v1/events/national:
  *   get:
- *     summary: Get all events by National ID
+ *     summary: Get all events by National
  *     tags:
  *       - Event
  *     parameters: []
@@ -63,7 +107,7 @@ router.get("/organisation-locales/:organisationLocalId",fetchAllEventsByOrganisa
  *       500:
  *         description: Server error
  */
-router.get("/national", fetchAllEventsByNational);
+router.get("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), fetchAllEventsByNational);
 /**
  * @swagger
  * /api/v1/events:
@@ -96,7 +140,13 @@ router.get("/national", fetchAllEventsByNational);
  *       500:
  *         description: Server error
  */
-router.post("/", uploadEvent, addImagePathEvents ,create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+            requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
+            uploadEvent, addImagePathEvents ,create);
+            
+router.post("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+            requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
+            uploadEvent, addImagePathEvents ,createNational);
 /**
  * @swagger
  * /api/v1/events/{id}:
@@ -138,7 +188,9 @@ router.post("/", uploadEvent, addImagePathEvents ,create);
  *       500:
  *         description: Server error
  */
-router.put("/:id", uploadEvent, addImagePathEvents, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,
+            requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
+             addImagePathEvents, update);
 /**
  * @swagger
  * /api/v1/events/{id}:
@@ -161,6 +213,7 @@ router.put("/:id", uploadEvent, addImagePathEvents, update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteEvent);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+            deleteEvent);
 
 export default router;

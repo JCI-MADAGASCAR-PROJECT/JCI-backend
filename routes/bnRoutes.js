@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { create, deleteBNMember, fetchAll, update } from "../controllers/bnControllers.js";
-import { uploadAvatar, addImagePathAvatar, titleExisting, titleExistingUpdate } from "../middleware/uploadMiddleware.js";
+import { uploadAvatar, addImagePathAvatar, titleExisting, titleExistingUpdate ,verifyImageFile} from "../middleware/uploadMiddleware.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -47,7 +48,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/", uploadAvatar,titleExisting, addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, titleExisting, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/bn/{id}:
@@ -85,7 +86,7 @@ router.post("/", uploadAvatar,titleExisting, addImagePathAvatar, create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",uploadAvatar,titleExistingUpdate, addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,titleExistingUpdate, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/bn/{id}:
@@ -108,6 +109,6 @@ router.put("/:id",uploadAvatar,titleExistingUpdate, addImagePathAvatar, update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteBNMember);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteBNMember);
 
 export default router;

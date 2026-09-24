@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { create, deletePastPresident, fetchAll, update } from "../controllers/pastPresidentControllers.js";
 import { uploadAvatar, addImagePathAvatar } from "../middleware/uploadMiddleware.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 /**
@@ -16,7 +17,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.get("/",fetchAll);
+router.get("/", fetchAll);
 
 
 /**
@@ -45,7 +46,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/", uploadAvatar, addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/past-presidents/{id}:
@@ -81,7 +82,7 @@ router.post("/", uploadAvatar, addImagePathAvatar, create);
  *       500:
  *         description: Server error
  */
-router.put("/:id", uploadAvatar, addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/past-presidents/{id}:
@@ -104,6 +105,6 @@ router.put("/:id", uploadAvatar, addImagePathAvatar, update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deletePastPresident);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), deletePastPresident);
 
 export default router;

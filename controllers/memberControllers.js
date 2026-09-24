@@ -14,6 +14,9 @@ export const fetchAllByOrganisationLocal = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const {name, imgUrl, title, ticket, organisationLocalId} = req.body;
+        if(!name || !imgUrl || !title || !ticket || !organisationLocalId){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
         await memberService.create(name, imgUrl, title, ticket, organisationLocalId);
         return res.status(201).json({message:"Member created!"});
     } catch (error) {

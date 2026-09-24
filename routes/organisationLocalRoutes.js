@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { create, deleteOrganisationLocal, fetchOrganisationLocalesByZone, update, fetchAllId, fetchAllByiD } from "../controllers/organisationLocaleControllers.js";
 import { uploadOl, addImagePathOlMap, addImagePathOlLogo } from '../middleware/uploadMiddleware.js';
+import { protect, authorize, requireOrganisationAccess } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.get("/", fetchAllId);
+router.get("/", protect, authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), fetchAllId);
 
 /**
  * @swagger
@@ -39,7 +40,9 @@ router.get("/", fetchAllId);
  *       500:
  *         description: Server error
  */
-router.get("/details/:id", fetchAllByiD);
+router.get("/details/:id", protect, authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+        requireOrganisationAccess(async (req) => Number(req.params.id)),
+        fetchAllByiD);
 
 /**
  * @swagger
@@ -61,7 +64,7 @@ router.get("/details/:id", fetchAllByiD);
  *       500:
  *         description: Server error
  */
-router.get("/:zoneId",fetchOrganisationLocalesByZone);
+router.get("/:zoneId", fetchOrganisationLocalesByZone);
 
 
 /**
@@ -98,7 +101,7 @@ router.get("/:zoneId",fetchOrganisationLocalesByZone);
  *       500:
  *         description: Server error
  */
-router.post("/",uploadOl,addImagePathOlMap, addImagePathOlLogo, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadOl,addImagePathOlMap, addImagePathOlLogo, create);
 /**
  * @swagger
  * /api/v1/organisation-locales/{id}:
@@ -142,7 +145,9 @@ router.post("/",uploadOl,addImagePathOlMap, addImagePathOlLogo, create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",uploadOl,addImagePathOlMap, addImagePathOlLogo, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+            requireOrganisationAccess(async (req) => Number(req.params.id)),
+            uploadOl,addImagePathOlMap, addImagePathOlLogo, update);
 /**
  * @swagger
  * /api/v1/organisation-locales/{id}:
@@ -165,6 +170,8 @@ router.put("/:id",uploadOl,addImagePathOlMap, addImagePathOlLogo, update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteOrganisationLocal);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),
+            requireOrganisationAccess(async (req) => Number(req.params.id)),
+            deleteOrganisationLocal);
 
 export default router;

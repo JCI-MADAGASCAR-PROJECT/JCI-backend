@@ -10,6 +10,12 @@ export const fetchAll = async () => {
 };
 
 export const create = async (name, year, imgUrl) =>{
+    const existingYear = await prisma.pastPresident.findFirst({
+        where: { year: Number(year) }
+    });
+    if (existingYear) {
+        throw new Error(`Un past président pour l'année ${year} existe déjà.`);
+    }
     return await prisma.pastPresident.create({
         data:{
             name,
@@ -20,6 +26,12 @@ export const create = async (name, year, imgUrl) =>{
 }
 
 export const update = async (name, year, imgUrl, id) =>{
+    const existingYear = await prisma.pastPresident.findFirst({
+        where: { year: Number(year), NOT: { id: Number(id) } }
+    });
+    if (existingYear) {
+        throw new Error(`Un past président pour l'année ${year} existe déjà.`);
+    }
     if(imgUrl) {
         const pp = await prisma.pastPresident.findUnique({
             where: { id: Number(id) }

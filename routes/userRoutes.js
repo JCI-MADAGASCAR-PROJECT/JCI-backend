@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { create, deleteUser, fetchAll, fetchUser, update, updatePassword } from "../controllers/userControllers.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.get("/",fetchAll);
+router.get("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),fetchAll);
 
 /**
  * @swagger
@@ -70,7 +71,7 @@ router.get("/:id", fetchUser);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), create);
 /**
  * @swagger
  * /api/v1/users/{id}:
@@ -102,7 +103,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),update);
 
 /**
  * @swagger
@@ -135,7 +136,7 @@ router.put("/:id",update);
  *       500:
  *         description: Server error
  */
-router.put("/:id/password", updatePassword);
+router.put("/:id/password",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), updatePassword);
 /**
  * @swagger
  * /api/v1/users/{id}:
@@ -158,6 +159,6 @@ router.put("/:id/password", updatePassword);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteUser);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteUser);
 
 export default router;

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {create, deleteMember, fetchAllByOrganisationLocal, update} from "../controllers/memberControllers.js";
 import { uploadAvatar, addImagePathAvatar } from "../middleware/uploadMiddleware.js";
-
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -25,7 +25,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.get("/:organisationLocalId",fetchAllByOrganisationLocal);
+router.get("/:organisationLocalId", fetchAllByOrganisationLocal);
 
 /**
  * @swagger
@@ -57,7 +57,7 @@ router.get("/:organisationLocalId",fetchAllByOrganisationLocal);
  *       500:
  *         description: Server error
  */
-router.post("/", uploadAvatar, addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), uploadAvatar, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/organisation-locales/members/{id}:
@@ -97,7 +97,7 @@ router.post("/", uploadAvatar, addImagePathAvatar, create);
  *       500:
  *         description: Server error
  */
-router.put("/:id", uploadAvatar, addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), uploadAvatar, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/organisation-locales/members/{id}:
@@ -120,6 +120,6 @@ router.put("/:id", uploadAvatar, addImagePathAvatar, update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteMember);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), deleteMember);
 
 export default router;

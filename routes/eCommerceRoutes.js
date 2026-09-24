@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { create, deleteItem, fetchAll, update } from "../controllers/eCommerceControllers.js";
+import { uploadItem, addImagePathItem } from "../middleware/uploadMiddleware.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -47,7 +49,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), uploadItem, addImagePathItem, create);
 /**
  * @swagger
  * /api/v1/items/{id}:
@@ -85,7 +87,7 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), uploadItem, addImagePathItem, update);
 /**
  * @swagger
  * /api/v1/items/{id}:
@@ -108,6 +110,6 @@ router.put("/:id",update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteItem);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), deleteItem);
 
 export default router;

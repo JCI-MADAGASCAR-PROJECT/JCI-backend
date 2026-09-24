@@ -3,6 +3,8 @@ import path from "path";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from "fs";
+import { fileTypeFromFile } from "file-type";
+import fsPromises from "fs/promises";
 import prisma from "../DB/db.config.js";
 
 
@@ -15,7 +17,10 @@ if (!fs.existsSync(picsDir)) {
 
 const avatarDir = path.join(picsDir, "avatar");
 const eventsDir = path.join(picsDir, "events");
-[avatarDir, eventsDir].forEach(dir => {
+const itemsDir = path.join(picsDir, "items");
+const eventsFileDir = path.join(picsDir, "events/files");
+
+[avatarDir, eventsDir, eventsFileDir, itemsDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -26,6 +31,13 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
   } else {
     cb(new Error("Seules les images sont autorisées"), false);
+  }
+};
+const pdfFileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Seuls les fichiers PDF sont autorisés"), false);
   }
 };
 
@@ -39,6 +51,8 @@ const makeStorage = (dir) => multer.diskStorage({
 
 export const uploadAvatar = multer({ storage: makeStorage(avatarDir), fileFilter }).single("picture");
 export const uploadEvent = multer({ storage: makeStorage(eventsDir), fileFilter }).single("picture");
+export const uploadItem = multer({ storage: makeStorage(itemsDir), fileFilter }).single("picture");
+export const uploadEventFile = multer({ storage: makeStorage(eventsFileDir), fileFilter: pdfFileFilter }).single("file");
 
 export const uploadOl = multer({
   storage: makeStorage(avatarDir),
@@ -52,10 +66,19 @@ export const addImagePathAvatar = (req, res, next) => {
   if (req.file) req.body.imgUrl = `/uploads/avatar/${req.file.filename}`;
   next();
 };
+export const addImagePathItem = (req, res, next) => {
+  if (req.file) req.body.imgUrl = `/uploads/items/${req.file.filename}`;
+  next();
+};
 
 export const addImagePathEvents = (req, res, next) => {
   
   if (req.file) req.body.imgUrl = `/uploads/events/${req.file.filename}`;
+  next();
+};
+export const addImagePathEventFiles = (req, res, next) => {
+  
+  if (req.file) req.body.fileUrl = `/uploads/events/files/${req.file.filename}`;
   next();
 };
 export const addImagePathOlMap = (req, res, next) => {
@@ -78,10 +101,10 @@ export const titleExisting = async (req, res, next) => {
       where: { title }
   });
   if (existingTitle) {
-      return res.status(400).json({ error: "Title already exists" });
+      return res.status(400).json({ message: "Le titre est déjà utilisé" });
   }
   if (!title) {
-    return res.status(400).json({ error: "Title is required" });
+    return res.status(400).json({ message: "Le titre est obligatoire" });
   }
   next();
 };
@@ -98,10 +121,24 @@ export const titleExistingUpdate = async (req, res, next) => {
 
   });
   if (existingTitle) {
-      return res.status(400).json({ error: "Title already exists" });
+      return res.status(400).json({ message: "Le titre est déjà utilisé" });
   }
   if (!title) {
-    return res.status(400).json({ error: "Title is required" });
+    return res.status(400).json({ message: "Le titre est obligatoire" });
   }
+  next();
+};
+
+export const verifyImageFile = async (req, res, next) => {
+  if (!req.file) return next();
+
+  const detected = await fileTypeFromFile(req.file.path);
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+
+  if (!detected || !allowed.includes(detected.mime)) {
+    await fsPromises.unlink(req.file.path);
+    return res.status(400).json({ message: "Le contenu du fichier est invalide" });
+  }
+
   next();
 };

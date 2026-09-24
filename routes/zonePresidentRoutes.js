@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { create, deleteZonePresident, fetchPsd, update } from "../controllers/zonePresidentControllers.js";
 import { addImagePathAvatar, uploadAvatar } from './../middleware/uploadMiddleware.js';
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.get("/:zoneId",fetchPsd);
  *       500:
  *         description: Server error
  */
-router.post("/",uploadAvatar,addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/zones/presidents/{id}:
@@ -96,7 +97,7 @@ router.post("/",uploadAvatar,addImagePathAvatar, create);
  *       500:
  *         description: Server error
  */
-router.put("/:id",uploadAvatar,addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/zones/presidents/{id}:
@@ -119,6 +120,6 @@ router.put("/:id",uploadAvatar,addImagePathAvatar, update);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteZonePresident);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteZonePresident);
 
 export default router;

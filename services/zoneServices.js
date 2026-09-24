@@ -18,6 +18,10 @@ export const fetchByZoneName = async (zoneName) => {
 };
 
 export const create = async (name, imgUrl) =>{
+    const existingZone = await fetchByZoneName(name);
+    if (existingZone) {
+        throw new Error("Zone with this name already exists");
+    }
     return await prisma.zone.create({
         data:{
             name,
@@ -27,6 +31,10 @@ export const create = async (name, imgUrl) =>{
 }
 
 export const update = async (name, imgUrl, id) =>{
+    const existingZone = await fetchByZoneName(name);
+    if (existingZone && existingZone.id !== Number(id)) {
+        throw new Error("Zone with this name already exists");
+    }
     if(imgUrl) {
         const zone = await prisma.zone.findUnique({
             where: { id: Number(id) }

@@ -14,12 +14,14 @@ export const fetchAll = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const {name, year, imgUrl} = req.body;
-        console.log(req.body);
+        if(!name || !year || !imgUrl){
+            return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+        }
         await pastPresidentService.create(name, year, imgUrl);
         return res.status(201).json({message:"Past President created!"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Past President not created !"});
+        return res.status(500).json({ message: error.message });
     }
 }
 
@@ -28,19 +30,19 @@ export const update = async (req, res) => {
         const {name, year, imgUrl} = req.body;
         const id = req.params.id;
         await pastPresidentService.update(name, year, imgUrl, id);
-        return res.status(201).json({message:"Past President updated!"});
+        return res.status(200).json({message:"Past President updated!"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Past President not updated!"});
+        return res.status(500).json({ message: error.message });
     }
 }
 export const deletePastPresident = async (req, res) => {
     try {
         const id = req.params.id;
         await pastPresidentService.deletePastPresident(id);
-        return res.status(201).json({message:"Past President deleted!"});
+        return res.status(200).json({message:"Past President deleted!"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Past President not deleted!"});
+        return res.status(500).json({ message: error.message });
     }
 }

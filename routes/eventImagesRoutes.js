@@ -4,6 +4,8 @@ import {
             deleteEventImage,
             fetchAllByEventId
         } from "../controllers/eventImagesControllers.js";
+import { addImagePathEvents, uploadEvent } from "../middleware/uploadMiddleware.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -53,7 +55,7 @@ router.get("/:eventId",fetchAllByEventId);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), uploadEvent,addImagePathEvents, create);
 
 /**
  * @swagger
@@ -77,6 +79,6 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteEventImage);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), deleteEventImage);
 
 export default router;

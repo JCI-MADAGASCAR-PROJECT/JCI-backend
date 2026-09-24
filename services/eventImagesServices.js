@@ -1,4 +1,6 @@
 import prisma from "../DB/db.config.js"
+import fs from "fs/promises";
+import path from "path";
 
 export const fetchAllByEventId = async (eventId) => {
     return await prisma.eventImage.findMany({
@@ -30,6 +32,18 @@ export const create = async (imgUrl, eventId) =>{
 // }
 
 export const deleteEventImage = async (id) =>{
+    const eventImage = await prisma.eventImage.findUnique({
+        where: { id: Number(id) }
+        });
+
+        if (!eventImage) {
+        throw new Error("Event image not found");
+        }
+        const filePath = path.join(
+            process.cwd(),
+            eventImage.imgUrl.replace(/^[/\\]/, "")    
+        );
+    await fs.unlink(filePath);
     return await prisma.eventImage.delete({
         where:{id:Number(id)}
     })

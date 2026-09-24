@@ -4,6 +4,8 @@ import {
             deleteEventFile,
             fetchAllByEventId
         } from "../controllers/eventFilesControllers.js";
+import { addImagePathEventFiles, uploadEventFile } from "../middleware/uploadMiddleware.js";
+import { protect, authorize , requireOrganisationAccess } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -53,7 +55,9 @@ router.get("/:eventId",fetchAllByEventId);
  *       500:
  *         description: Server error
  */
-router.post("/", create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+    // requireOrganisationAccess(async (req) => Number(req.body.organisationsLocaleId)),
+    uploadEventFile,addImagePathEventFiles, create);
 
 /**
  * @swagger
@@ -77,6 +81,6 @@ router.post("/", create);
  *       500:
  *         description: Server error
  */
-router.delete("/:id",deleteEventFile);
+router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), deleteEventFile);
 
 export default router;
