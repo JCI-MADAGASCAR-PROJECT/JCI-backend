@@ -12,9 +12,11 @@ import {
         } from "../controllers/eventControllers.js";
 import { 
             uploadEvent, 
-            addImagePathEvents 
+            addImagePathEvents ,
+            verifyImageFile
         } from "../middleware/uploadMiddleware.js";
 import { protect, authorize, requireOrganisationAccess } from "../middleware/authMiddleware.js";
+import prisma from "../DB/db.config.js";
 
 const router = Router();
 
@@ -142,11 +144,11 @@ router.get("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), fetch
  */
 router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
             requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
-            uploadEvent, addImagePathEvents ,create);
+            uploadEvent,verifyImageFile, addImagePathEvents ,create);
             
 router.post("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
             requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
-            uploadEvent, addImagePathEvents ,createNational);
+            uploadEvent,verifyImageFile, addImagePathEvents ,createNational);
 /**
  * @swagger
  * /api/v1/events/{id}:
@@ -188,7 +190,7 @@ router.post("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMI
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,verifyImageFile,
             requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
              addImagePathEvents, update);
 /**
@@ -213,7 +215,17 @@ router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCA
  *       500:
  *         description: Server error
  */
-router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
-            deleteEvent);
+router.delete("/:id",
+    protect,
+    authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+    requireOrganisationAccess(async (req) => {
+        // Charger l'organisationLocalId de l'event pour vérifier le droit
+        const event = await prisma.event.findUnique({
+            where: { id: Number(req.params.id) },
+            select: { organisationLocalId: true },
+        });
+        return event?.organisationLocalId ?? null;
+    }),
+    deleteEvent);
 
 export default router;

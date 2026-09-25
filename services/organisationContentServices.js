@@ -3,7 +3,7 @@ import prisma from "../DB/db.config.js"
 export const fetchOrganisationLocalesContentByOrganisationLocal = async (organisationLocalId) => {
     return await prisma.organisationLocalContent.findMany({
         orderBy: {
-            name: "asc"
+            id: "asc"
         },
         where: {
             organisationLocalId: Number(organisationLocalId)

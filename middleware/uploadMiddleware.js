@@ -49,14 +49,19 @@ const makeStorage = (dir) => multer.diskStorage({
   },
 });
 
-export const uploadAvatar = multer({ storage: makeStorage(avatarDir), fileFilter }).single("picture");
-export const uploadEvent = multer({ storage: makeStorage(eventsDir), fileFilter }).single("picture");
-export const uploadItem = multer({ storage: makeStorage(itemsDir), fileFilter }).single("picture");
-export const uploadEventFile = multer({ storage: makeStorage(eventsFileDir), fileFilter: pdfFileFilter }).single("file");
+
+const IMG_MAX = 5 * 1024 * 1024;   
+const PDF_MAX = 10 * 1024 * 1024;  
+
+export const uploadAvatar    = multer({ storage: makeStorage(avatarDir),     fileFilter,               limits: { fileSize: IMG_MAX } }).single("picture");
+export const uploadEvent     = multer({ storage: makeStorage(eventsDir),     fileFilter,               limits: { fileSize: IMG_MAX } }).single("picture");
+export const uploadItem      = multer({ storage: makeStorage(itemsDir),      fileFilter,               limits: { fileSize: IMG_MAX } }).single("picture");
+export const uploadEventFile = multer({ storage: makeStorage(eventsFileDir), fileFilter: pdfFileFilter, limits: { fileSize: PDF_MAX } }).single("file");
 
 export const uploadOl = multer({
   storage: makeStorage(avatarDir),
-  fileFilter
+  fileFilter,
+  limits: { fileSize: IMG_MAX }
 }).fields([
   { name: "mapImg", maxCount: 1 },
   { name: "logoImg", maxCount: 1 }
@@ -72,15 +77,15 @@ export const addImagePathItem = (req, res, next) => {
 };
 
 export const addImagePathEvents = (req, res, next) => {
-  
-  if (req.file) req.body.imgUrl = `/uploads/events/${req.file.filename}`;
+    if (req.file) req.body.imgUrl = `/uploads/events/${req.file.filename}`;
   next();
 };
+
 export const addImagePathEventFiles = (req, res, next) => {
-  
-  if (req.file) req.body.fileUrl = `/uploads/events/files/${req.file.filename}`;
+    if (req.file) req.body.fileUrl = `/uploads/events/files/${req.file.filename}`;
   next();
 };
+
 export const addImagePathOlMap = (req, res, next) => {
   if (req.files?.mapImg?.[0]) {
     req.body.mapImgUrl = `/uploads/avatar/${req.files.mapImg[0].filename}`;
@@ -108,20 +113,20 @@ export const titleExisting = async (req, res, next) => {
   }
   next();
 };
+
 export const titleExistingUpdate = async (req, res, next) => {
   const { title } = req.body;
   const { id } = req.params;
   const existingTitle = await prisma.bureauNational.findUnique({
-      where: { 
-        title,
-        NOT: {
-            id: Number(id),
-          },
+    where: { 
+      title,
+      NOT: {
+        id: Number(id),
+      },
     },
-
   });
   if (existingTitle) {
-      return res.status(400).json({ message: "Le titre est déjà utilisé" });
+    return res.status(400).json({ message: "Le titre est déjà utilisé" });
   }
   if (!title) {
     return res.status(400).json({ message: "Le titre est obligatoire" });
@@ -138,6 +143,60 @@ export const verifyImageFile = async (req, res, next) => {
   if (!detected || !allowed.includes(detected.mime)) {
     await fsPromises.unlink(req.file.path);
     return res.status(400).json({ message: "Le contenu du fichier est invalide" });
+  }
+
+  next();
+};
+
+export const verifyImageFileOl = async (req, res, next) => {
+  const files = Object.values(req.files || {}).flat()
+
+  const allowed = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ]
+
+  try {
+    for (const file of files) {
+      const detected = await fileTypeFromFile(file.path)
+
+      if (!detected || !allowed.includes(detected.mime)) {
+        await fsPromises.unlink(file.path)
+
+        return res.status(400).json({
+          message: "Le contenu du fichier est invalide"
+        })
+      }
+    }
+
+    next()
+  } catch (error) {
+    console.error("[verifyImageFile]", error)
+
+    // Nettoyage des fichiers déjà uploadés
+    await Promise.all(
+      files.map(async (file) => {
+        try {
+          await fsPromises.unlink(file.path)
+        } catch {}
+      })
+    )
+
+    return res.status(500).json({
+      message: "Erreur lors de la vérification du fichier"
+    })
+  }
+}
+
+export const verifyPdfFile = async (req, res, next) => {
+  if (!req.file) return next();
+
+  const detected = await fileTypeFromFile(req.file.path);
+  // application/pdf = signature magique %PDF en début de fichier
+  if (!detected || detected.mime !== "application/pdf") {
+    await fsPromises.unlink(req.file.path);
+    return res.status(400).json({ message: "Le fichier n'est pas un PDF valide" });
   }
 
   next();

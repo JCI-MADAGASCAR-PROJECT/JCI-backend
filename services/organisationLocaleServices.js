@@ -4,6 +4,9 @@ import path from "path";
 
 export const fetchAllByZone = async (zoneId) => {
     return await prisma.organisationLocal.findMany({
+        orderBy: {
+            name: "asc"
+        },
         where: {
             zoneId: Number(zoneId)
         }

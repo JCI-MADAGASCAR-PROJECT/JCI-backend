@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { create, deleteZone, fetchAll, update, fetchByZoneName } from "../controllers/zoneControllers.js";
-import { uploadAvatar, addImagePathAvatar} from "../middleware/uploadMiddleware.js";
+import { uploadAvatar, addImagePathAvatar, verifyImageFile } from "../middleware/uploadMiddleware.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -65,7 +65,7 @@ router.get("/:zoneName",fetchByZoneName);
  *       500:
  *         description: Server error
  */
-router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, verifyImageFile, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/zones/{id}:
@@ -99,7 +99,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, verifyImageFile, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/zones/{id}:

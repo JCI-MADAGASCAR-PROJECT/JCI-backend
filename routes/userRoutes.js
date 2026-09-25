@@ -41,7 +41,7 @@ router.get("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),fetchAll);
  *       500:
  *         description: Server error
  */
-router.get("/:id", fetchUser);
+router.get("/:id", protect, authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), fetchUser);
 
 /**
  * @swagger

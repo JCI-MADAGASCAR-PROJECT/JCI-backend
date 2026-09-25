@@ -2,12 +2,38 @@ import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
 
-export const fetchAllEvents = async () => {
-    return await prisma.event.findMany({
-        orderBy: {
-            date: 'desc'
-        },
-    });
+
+// ✅ Répertoire de base des uploads — utilisé pour valider les chemins avant fs.unlink
+const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
+
+// ✅ Suppression sécurisée : bloque tout chemin hors du dossier uploads
+const safeUnlink = async (relativeUrl) => {
+    if (!relativeUrl) return;
+    const filePath = path.resolve(process.cwd(), relativeUrl.replace(/^[/\\]/, ""));
+    if (!filePath.startsWith(UPLOAD_DIR)) {
+        console.error("[safeUnlink] Path traversal bloqué :", filePath);
+        throw new Error("Chemin de fichier invalide");
+    }
+    try {
+        await fs.unlink(filePath);
+    } catch (err) {
+        // Ignorer si le fichier est déjà absent (idempotent)
+        if (err.code !== "ENOENT") throw err;
+    }
+};
+
+
+export const fetchAllEventsPaginated = async (page = 1, limit = 20) => {
+    const skip = (page - 1) * limit;
+    const [events, total] = await Promise.all([
+        prisma.event.findMany({
+            orderBy: { date: "desc" },
+            take: limit,
+            skip,
+        }),
+        prisma.event.count(),
+    ]);
+    return { events, total, page, totalPages: Math.ceil(total / limit) };
 };
 export const fetchAllActuEvents = async () => {
     return await prisma.event.findMany({
@@ -17,6 +43,7 @@ export const fetchAllActuEvents = async () => {
         take: 4,
     });
 };
+
 export const fetchEventById = async (eventId) => {
     return await prisma.event.findUnique({
         where: { id: Number(eventId) }
@@ -45,9 +72,9 @@ export const fetchAllEventsByNational = async () => {
     });
 };
 
-export const create = async (title, type, imgUrl, content, date, organisationLocalId) =>{
+export const create = async (title, type, imgUrl, content, date, organisationLocalId) => {
     return await prisma.event.create({
-        data:{
+        data: {
             title,
             type,
             imgUrl,
@@ -57,9 +84,10 @@ export const create = async (title, type, imgUrl, content, date, organisationLoc
         }
     })
 }
+
 export const createNational = async (title, type, imgUrl, content, date) =>{
     return await prisma.event.create({
-        data:{
+        data: {
             title,
             type,
             imgUrl,
@@ -69,22 +97,18 @@ export const createNational = async (title, type, imgUrl, content, date) =>{
     })
 }
 
-export const update = async (title, type, imgUrl, content, date, id) =>{
+export const update = async (title, type, imgUrl, content, date, id) => {
     if(imgUrl) {
         const event = await prisma.event.findUnique({
             where: { id: Number(id) }
         });
-        if (event && event.imgUrl) {
-            const filePath = path.join(
-                process.cwd(),
-                event.imgUrl.replace(/^[/\\]/, "")    
-            );
-            await fs.unlink(filePath);
+         if (event?.imgUrl) {
+            await safeUnlink(event.imgUrl);
         }
     }
     return await prisma.event.update({
-        where:{id:Number(id)},
-        data:{
+        where: { id:Number(id) },
+        data: {
             title,
             type,
             imgUrl,
@@ -94,20 +118,16 @@ export const update = async (title, type, imgUrl, content, date, id) =>{
     })
 }
 
-export const deleteEvent = async (id) =>{
+export const deleteEvent = async (id) => {
     const event = await prisma.event.findUnique({
         where: { id: Number(id) }
-        });
+    });
 
-        if (!event) {
+    if (!event) {
         throw new Error("Event not found");
         }
-        const filePath = path.join(
-            process.cwd(),
-            event.imgUrl.replace(/^[/\\]/, "")    
-        );
-    await fs.unlink(filePath);
+    await safeUnlink(event.imgUrl);
     return await prisma.event.delete({
-        where:{id:Number(id)}
+        where: {id:Number(id) }
     })
 }

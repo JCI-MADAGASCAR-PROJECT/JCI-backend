@@ -1,12 +1,23 @@
 import * as eventService from "../services/eventServices.js"
 
+// export const fetchAllEvents = async (req, res) => {
+//     try {
+//         const events = await eventService.fetchAllEvents();
+//         return res.status(200).json(events);
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({ message: "Events not fetched !"});
+//     }
+// }
 export const fetchAllEvents = async (req, res) => {
     try {
-        const events = await eventService.fetchAllEvents();
-        return res.status(200).json(events);
+        const page  = Math.max(1, parseInt(req.query.page)  || 1);
+        const limit = Math.min(100, parseInt(req.query.limit) || 20);
+        const result = await eventService.fetchAllEventsPaginated(page, limit);
+        return res.status(200).json(result);
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Events not fetched !"});
+        console.error("[fetchAllEvents]", error);
+        return res.status(500).json({ message: "Events not fetched !" });
     }
 }
 export const fetchAllActuEvents = async (req, res) => {

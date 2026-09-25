@@ -30,11 +30,6 @@ export const fetchUser = async (id) => {
     });
 };
 
-export const fetchByEmail = async (email) => {
-    return await prisma.user.findUnique({
-        where: { email },
-    });
-};
 
 export const create = async (email, password, role, ol_id) =>{
     if(!email || !password){
@@ -122,8 +117,6 @@ export const updatePassword = async (password, id) => {
     throw new Error("Utilisateur non trouvé");
     }
 
-    // No need to check for email uniqueness when updating password
-
     return await prisma.user.update({
     where: {
         id: Number(id),
@@ -134,39 +127,39 @@ export const updatePassword = async (password, id) => {
     });
 };
 
-export const updateAdmin = async (email,password, id) =>{
-    if(!email || !password){
-        throw new Error("Veuillez remplir tous les champs");
-    }
-    const response = await prisma.user.findUnique({
-        where:{
-            email,
-        }
-    });
-    if (response) {
-        throw new Error("Email deja utilisé. Veuillez choisir un autre email");
-    }
-    const user = await prisma.user.findFirst({
-        where:{
-            id: Number(id),
-        }
-    });
-    if(!user){
-        throw new Error("Identifiants invalides");
-    };
+// export const updateAdmin = async (email,password, id) =>{
+//     if(!email || !password){
+//         throw new Error("Veuillez remplir tous les champs");
+//     }
+//     const response = await prisma.user.findUnique({
+//         where:{
+//             email,
+//         }
+//     });
+//     if (response) {
+//         throw new Error("Email deja utilisé. Veuillez choisir un autre email");
+//     }
+//     const user = await prisma.user.findFirst({
+//         where:{
+//             id: Number(id),
+//         }
+//     });
+//     if(!user){
+//         throw new Error("Identifiants invalides");
+//     };
 
-    if(!isAdmin || isAdmin.role !== "SUPER_ADMIN"){
-        throw new Error("Utilisateur non autorisé");
-    }
+//     if(!isAdmin || isAdmin.role !== "SUPER_ADMIN"){
+//         throw new Error("Utilisateur non autorisé");
+//     }
 
-    return await prisma.user.update({
-        where:{id:Number(id)},
-        data:{
-            email,
-            password: await bcrypt.hash(password, 10),
-        }
-    })
-}
+//     return await prisma.user.update({
+//         where:{id:Number(id)},
+//         data:{
+//             email,
+//             password: await bcrypt.hash(password, 10),
+//         }
+//     })
+// }
 
 export const deleteUser = async (id) =>{
     return await prisma.user.delete({

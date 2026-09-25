@@ -4,7 +4,7 @@ import {
             deleteEventFile,
             fetchAllByEventId
         } from "../controllers/eventFilesControllers.js";
-import { addImagePathEventFiles, uploadEventFile } from "../middleware/uploadMiddleware.js";
+import { addImagePathEventFiles, uploadEventFile , verifyPdfFile } from "../middleware/uploadMiddleware.js";
 import { protect, authorize , requireOrganisationAccess } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -57,8 +57,7 @@ router.get("/:eventId",fetchAllByEventId);
  */
 router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
     // requireOrganisationAccess(async (req) => Number(req.body.organisationsLocaleId)),
-    uploadEventFile,addImagePathEventFiles, create);
-
+        uploadEventFile, verifyPdfFile, addImagePathEventFiles, create);
 /**
  * @swagger
  * /api/v1/events/files/{id}:

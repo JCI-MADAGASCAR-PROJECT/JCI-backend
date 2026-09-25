@@ -48,7 +48,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, titleExisting, addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,verifyImageFile, titleExisting, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/bn/{id}:
@@ -86,7 +86,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,titleExistingUpdate, addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,verifyImageFile, titleExistingUpdate, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/bn/{id}:
