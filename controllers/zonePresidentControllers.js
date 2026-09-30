@@ -10,6 +10,16 @@ export const fetchPsd = async (req, res) => {
     }
 }
 
+export const fetchFirst = async (req, res) => {
+    try {
+        await zonePresidentService.fetchFirst();
+        return res.status(200).json({ message: "Zone Presidents fetched successfully"});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Zone Presidents not fetched !"});
+    }
+}
+
 
 export const create = async (req, res) => {
     try {

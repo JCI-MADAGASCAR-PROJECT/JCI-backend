@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create, deleteZonePresident, fetchPsd, update } from "../controllers/zonePresidentControllers.js";
+import { create, deleteZonePresident, fetchPsd, fetchFirst, update } from "../controllers/zonePresidentControllers.js";
 import { addImagePathAvatar, uploadAvatar, verifyImageFile, uploadAvatarToOvh } from './../middleware/uploadMiddleware.js';
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -26,6 +26,21 @@ const router = Router();
  *         description: Server error
  */
 router.get("/:zoneId",fetchPsd);
+
+/**
+ * @swagger
+ * /api/v1/zones/presidents/first:
+ *   get:
+ *     summary: Get the first Zone President
+ *     tags:
+ *       - Zone President
+ *     responses:
+ *       200:
+ *         description: The first Zone President
+ *       500:
+ *         description: Server error
+ */
+router.get("/first",fetchFirst);
 
 /**
  * @swagger

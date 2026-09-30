@@ -11,6 +11,10 @@ export const fetchPsd = async (zoneId) => {
     });
 };
 
+export const fetchFirst = async () => {
+    return await prisma.zonePresident.findFirst();
+};
+
 export const create = async (name, quote, contact, imgUrl, zoneId) =>{
     return await prisma.zonePresident.create({
         data:{
