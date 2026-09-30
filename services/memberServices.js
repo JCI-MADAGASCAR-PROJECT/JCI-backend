@@ -1,6 +1,7 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
 
 export const fetchAllByOrganisationLocal = async (organisationLocalId) => {
     return await prisma.member.findMany({
@@ -31,11 +32,7 @@ export const update = async (name, imgUrl, title, ticket, id) =>{
         where: { id: Number(id) }
     });
     if (member && member.imgUrl) {
-        const filePath = path.join(
-            process.cwd(),
-            member.imgUrl.replace(/^[/\\]/, "")
-        );
-        await fs.unlink(filePath);
+        await deleteFromOvh(member.imgUrl);
         }
     }
     return await prisma.member.update({
@@ -57,11 +54,7 @@ export const deleteMember = async (id) =>{
     if (!member) {
     throw new Error("Member not found");
     }
-    const filePath = path.join(
-        process.cwd(),
-        member.imgUrl.replace(/^[/\\]/, "")    
-    );
-    await fs.unlink(filePath);
+    await deleteFromOvh(member.imgUrl);
     return await prisma.member.delete({
         where:{id:Number(id)}
     })

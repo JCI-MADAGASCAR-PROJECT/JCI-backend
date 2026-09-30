@@ -1,4 +1,5 @@
 import prisma from "../DB/db.config.js"
+import { deleteFromOvh } from "../services/ovhSftp.js";
 
 export const fetchAll = async () => {
     return await prisma.item.findMany({
@@ -20,8 +21,18 @@ export const create = async (name, description, price, imgUrl) =>{
 }
 
 export const update = async (name, description, price, imgUrl, id) =>{
+    const itemId = Number(id);
+
+    const existingItem = await prisma.item.findUnique({
+        where:{id:itemId}
+    });
+
+    if (existingItem && existingItem.imgUrl && existingItem.imgUrl !== imgUrl) {
+        await deleteFromOvh(existingItem.imgUrl);
+    }
+
     return await prisma.item.update({
-        where:{id:Number(id)},
+        where:{id:itemId},
         data:{
             name,
             description,
@@ -32,7 +43,16 @@ export const update = async (name, description, price, imgUrl, id) =>{
 }
 
 export const deleteItem = async (id) =>{
+    const itemId = Number(id);
+    const item = await prisma.item.findUnique({
+        where:{id:itemId}
+    });
+
+    if (item && item.imgUrl) {
+        await deleteFromOvh(item.imgUrl);
+    }
+
     return await prisma.item.delete({
-        where:{id:Number(id)}
+        where:{id:itemId}
     })
 }

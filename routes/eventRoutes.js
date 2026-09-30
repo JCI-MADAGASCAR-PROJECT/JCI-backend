@@ -13,7 +13,8 @@ import {
 import { 
             uploadEvent, 
             addImagePathEvents ,
-            verifyImageFile
+            verifyImageFile,
+            uploadEventToOvh
         } from "../middleware/uploadMiddleware.js";
 import { protect, authorize, requireOrganisationAccess } from "../middleware/authMiddleware.js";
 import prisma from "../DB/db.config.js";
@@ -144,11 +145,11 @@ router.get("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), fetch
  */
 router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
             requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
-            uploadEvent,verifyImageFile, addImagePathEvents ,create);
+            uploadEvent,verifyImageFile, uploadEventToOvh, addImagePathEvents ,create);
             
 router.post("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
             requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
-            uploadEvent,verifyImageFile, addImagePathEvents ,createNational);
+            uploadEvent,verifyImageFile, uploadEventToOvh, addImagePathEvents ,createNational);
 /**
  * @swagger
  * /api/v1/events/{id}:
@@ -190,7 +191,7 @@ router.post("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMI
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,verifyImageFile,
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,verifyImageFile, uploadEventToOvh,
             requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
              addImagePathEvents, update);
 /**

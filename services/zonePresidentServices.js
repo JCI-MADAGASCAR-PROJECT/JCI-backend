@@ -1,6 +1,7 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
 
 export const fetchPsd = async (zoneId) => {
     return await prisma.zonePresident.findFirst({
@@ -28,11 +29,7 @@ export const update = async (name, quote, contact, imgUrl, zoneId, id) =>{
             where: { id: Number(id) }
         });
         if (zonePsd && zonePsd.imgUrl) {
-            const filePath = path.join(
-                process.cwd(),
-                zonePsd.imgUrl.replace(/^[/\\]/, "")    
-            );
-            await fs.unlink(filePath);
+            await deleteFromOvh(zonePsd.imgUrl);
         }
     }
     return await prisma.zonePresident.update({
@@ -55,11 +52,7 @@ export const deleteZonePresident = async (id) =>{
     if (!psd) {
     throw new Error("Zone president not found");
     }
-    const filePath = path.join(
-        process.cwd(),
-        psd.imgUrl.replace(/^[/\\]/, "")    
-    );
-    await fs.unlink(filePath);
+    await deleteFromOvh(psd.imgUrl);
     return await prisma.zonePresident.delete({
         where:{id:Number(id)}
     })

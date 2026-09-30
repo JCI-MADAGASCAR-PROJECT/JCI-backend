@@ -1,6 +1,6 @@
 import prisma from "../DB/db.config.js";
-import fs from "fs/promises";
-import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
+
 import { z } from "zod";
 
 /* =========================
@@ -78,27 +78,6 @@ const validateMemberData = (name, firstName, title, imgUrl) => {
  * Vérifie que le fichier à supprimer se trouve
  * bien dans le dossier uploads.
  */
-const getSafeImagePath = (imgUrl) => {
-    if (!imgUrl || typeof imgUrl !== "string") {
-        throw new Error("Chemin de fichier invalide");
-    }
-
-    const cleanPath = imgUrl
-        .replace(/^[/\\]+/, "")
-        .replace(/\.\.(?=[/\\])/g, "");
-
-    const uploadsPath = path.resolve(process.cwd(), "uploads");
-    const filePath = path.resolve(process.cwd(), cleanPath);
-
-    if (
-        filePath !== uploadsPath &&
-        !filePath.startsWith(`${uploadsPath}${path.sep}`)
-    ) {
-        throw new Error("Chemin de fichier non autorisé");
-    }
-
-    return filePath;
-};
 
 /* =========================
    FETCH ALL
@@ -187,19 +166,7 @@ export const update = async (
      * lorsqu'une nouvelle image est fournie.
      */
     if (imgUrl && member.imgUrl && member.imgUrl !== imgUrl) {
-        const filePath = getSafeImagePath(member.imgUrl);
-
-        try {
-            await fs.unlink(filePath);
-        } catch (error) {
-            /*
-             * Si le fichier n'existe déjà plus,
-             * on continue quand même.
-             */
-            if (error.code !== "ENOENT") {
-                throw error;
-            }
-        }
+        await deleteFromOvh(member.imgUrl);
     }
 
     return await prisma.bureauNational.update({
@@ -231,19 +198,7 @@ export const deleteBNMember = async (id) => {
      * Supprimer le fichier uniquement s'il existe.
      */
     if (member.imgUrl) {
-        const filePath = getSafeImagePath(member.imgUrl);
-
-        try {
-            await fs.unlink(filePath);
-        } catch (error) {
-            /*
-             * Le fichier peut avoir déjà été supprimé
-             * manuellement ou lors d'une opération précédente.
-             */
-            if (error.code !== "ENOENT") {
-                throw error;
-            }
-        }
+        await deleteFromOvh(member.imgUrl);
     }
 
     return await prisma.bureauNational.delete({

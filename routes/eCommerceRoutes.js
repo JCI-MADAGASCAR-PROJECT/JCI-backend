@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { create, deleteItem, fetchAll, update } from "../controllers/eCommerceControllers.js";
-import { uploadItem, addImagePathItem,verifyImageFile } from "../middleware/uploadMiddleware.js";
+import { uploadItem, addImagePathItem,verifyImageFile, uploadItemToOvh } from "../middleware/uploadMiddleware.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -49,7 +49,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), uploadItem,verifyImageFile, addImagePathItem, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), uploadItem, verifyImageFile, uploadItemToOvh, addImagePathItem, create);
 /**
  * @swagger
  * /api/v1/items/{id}:
@@ -87,7 +87,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMME
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), uploadItem,verifyImageFile, addImagePathItem, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL","ADMIN_E_COMMERCE"), uploadItem, verifyImageFile, uploadItemToOvh, addImagePathItem, update);
 /**
  * @swagger
  * /api/v1/items/{id}:

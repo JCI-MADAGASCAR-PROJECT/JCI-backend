@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { create, deleteOrganisationLocal, fetchOrganisationLocalesByZone, update, fetchAllId, fetchAllByiD } from "../controllers/organisationLocaleControllers.js";
-import { uploadOl, addImagePathOlMap, addImagePathOlLogo, verifyImageFileOl } from '../middleware/uploadMiddleware.js';
+import { uploadOl, addImagePathOlMap, addImagePathOlLogo, verifyImageFileOl ,uploadOlToOvh} from '../middleware/uploadMiddleware.js';
 import { protect, authorize, requireOrganisationAccess } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -101,7 +101,7 @@ router.get("/:zoneId", fetchOrganisationLocalesByZone);
  *       500:
  *         description: Server error
  */
-router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadOl,verifyImageFileOl, addImagePathOlMap, addImagePathOlLogo, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadOl,verifyImageFileOl, uploadOlToOvh, addImagePathOlMap, addImagePathOlLogo, create);
 /**
  * @swagger
  * /api/v1/organisation-locales/{id}:
@@ -147,7 +147,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadOl,ver
  */
 router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
             requireOrganisationAccess(async (req) => Number(req.params.id)),
-            uploadOl,verifyImageFileOl, addImagePathOlMap, addImagePathOlLogo, update);
+            uploadOl,verifyImageFileOl, uploadOlToOvh, addImagePathOlMap, addImagePathOlLogo, update);
 /**
  * @swagger
  * /api/v1/organisation-locales/{id}:

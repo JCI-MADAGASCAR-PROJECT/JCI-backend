@@ -1,6 +1,7 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
 
 export const fetchAllByZone = async (zoneId) => {
     return await prisma.organisationLocal.findMany({
@@ -55,11 +56,7 @@ export const update = async (name, localisation, phone, email, mapImgUrl, logoIm
             where: { id: Number(id) }
         });
         if (ol && ol.mapImgUrl) {
-            const filePath = path.join(
-                process.cwd(),
-                ol.mapImgUrl.replace(/^[/\\]/, "")    
-            );
-            await fs.unlink(filePath);
+            await deleteFromOvh(ol.mapImgUrl);
         }
     }
     if(logoImgUrl) {
@@ -67,11 +64,7 @@ export const update = async (name, localisation, phone, email, mapImgUrl, logoIm
             where: { id: Number(id) }
         });
         if (ol && ol.logoImgUrl) {
-            const filePath = path.join(
-                process.cwd(),
-                ol.logoImgUrl.replace(/^[/\\]/, "")    
-            );
-            await fs.unlink(filePath);
+            await deleteFromOvh(ol.logoImgUrl);
         }
     }
     return await prisma.organisationLocal.update({
@@ -95,18 +88,8 @@ export const deleteOrganisationLocal = async (id) =>{
     if (!ol) {
         throw new Error("Organisation Local not found");
     }
-    const mapFilePath = path.join(
-        process.cwd(),
-        ol.mapImgUrl.replace(/^[/\\]/, "")    
-    );
-    const logoFilePath = path.join(
-        process.cwd(),
-        ol.logoImgUrl.replace(/^[/\\]/, "")    
-    );
-    console.log("mapFilePath:", mapFilePath);
-    console.log("logoFilePath:", logoFilePath);
-    await fs.unlink(mapFilePath);
-    await fs.unlink(logoFilePath);
+    await deleteFromOvh(ol.mapImgUrl);
+    await deleteFromOvh(ol.logoImgUrl);
     return await prisma.organisationLocal.delete({
         where:{id:Number(id)}
     })

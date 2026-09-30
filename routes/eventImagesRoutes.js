@@ -4,7 +4,7 @@ import {
             deleteEventImage,
             fetchAllByEventId
         } from "../controllers/eventImagesControllers.js";
-import { addImagePathEvents, uploadEvent ,verifyImageFile} from "../middleware/uploadMiddleware.js";
+import { addImagePathEvents, uploadEvent ,verifyImageFile, uploadEventToOvh} from "../middleware/uploadMiddleware.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -55,7 +55,7 @@ router.get("/:eventId",fetchAllByEventId);
  *       500:
  *         description: Server error
  */
-router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), uploadEvent, verifyImageFile, addImagePathEvents, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), uploadEvent, verifyImageFile, uploadEventToOvh, addImagePathEvents, create);
 
 /**
  * @swagger

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { create, deleteBNMember, fetchAll, update } from "../controllers/bnControllers.js";
-import { uploadAvatar, addImagePathAvatar, titleExisting, titleExistingUpdate ,verifyImageFile} from "../middleware/uploadMiddleware.js";
+import { uploadAvatar, addImagePathAvatar, titleExisting, titleExistingUpdate ,verifyImageFile, uploadAvatarToOvh} from "../middleware/uploadMiddleware.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -48,7 +48,7 @@ router.get("/",fetchAll);
  *       500:
  *         description: Server error
  */
-router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,verifyImageFile, titleExisting, addImagePathAvatar, create);
+router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,verifyImageFile,uploadAvatarToOvh, titleExisting, addImagePathAvatar, create);
 /**
  * @swagger
  * /api/v1/bn/{id}:
@@ -86,7 +86,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,verifyImageFile, titleExistingUpdate, addImagePathAvatar, update);
+router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar,verifyImageFile,uploadAvatarToOvh, titleExistingUpdate, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/bn/{id}:

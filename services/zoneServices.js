@@ -1,6 +1,7 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
 
 
 export const fetchAll = async () => {
@@ -40,11 +41,7 @@ export const update = async (name, imgUrl, id) =>{
             where: { id: Number(id) }
         });
         if (zone && zone.imgUrl) {
-            const filePath = path.join(
-                process.cwd(),
-                zone.imgUrl.replace(/^[/\\]/, "")    
-            );
-            await fs.unlink(filePath);
+            await deleteFromOvh(zone.imgUrl);
         }
     }
     return await prisma.zone.update({
@@ -65,12 +62,7 @@ export const deleteZone = async (id) =>{
     throw new Error("Zone not found");
     }
     if (zone && zone.imgUrl) {
-        const filePath = path.join(
-            process.cwd(),
-            zone.imgUrl.replace(/^[/\\]/, "")    
-        );
-        console.log("filePath:", filePath);
-        await fs.unlink(filePath);
+        await deleteFromOvh(zone.imgUrl);
     }
     return await prisma.zone.delete({
         where:{id:Number(id)}

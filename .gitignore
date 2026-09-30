@@ -1,5 +1,9 @@
 node_modules
 # Keep environment variables out of version control
 .env
+cron.js
+test-ovh-sftp.js
+test.jpg
+docs/DOCUMENTATION_ET_REGLES_DE_GESTION.md
 
 /generated/prisma

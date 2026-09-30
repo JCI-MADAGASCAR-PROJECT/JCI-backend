@@ -4,8 +4,10 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from "fs";
 import { fileTypeFromFile } from "file-type";
+import { fileTypeFromBuffer } from "file-type";
 import fsPromises from "fs/promises";
 import prisma from "../DB/db.config.js";
+import { uploadToOvh } from "../services/ovhSftp.js";
 
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -41,25 +43,38 @@ const pdfFileFilter = (req, file, cb) => {
   }
 };
 
-const makeStorage = (dir) => multer.diskStorage({
-  destination: (req, file, cb) => cb(null, dir),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
+const makeStorage = () => multer.memoryStorage();
 
 
 const IMG_MAX = 5 * 1024 * 1024;   
 const PDF_MAX = 10 * 1024 * 1024;  
 
-export const uploadAvatar    = multer({ storage: makeStorage(avatarDir),     fileFilter,               limits: { fileSize: IMG_MAX } }).single("picture");
-export const uploadEvent     = multer({ storage: makeStorage(eventsDir),     fileFilter,               limits: { fileSize: IMG_MAX } }).single("picture");
-export const uploadItem      = multer({ storage: makeStorage(itemsDir),      fileFilter,               limits: { fileSize: IMG_MAX } }).single("picture");
-export const uploadEventFile = multer({ storage: makeStorage(eventsFileDir), fileFilter: pdfFileFilter, limits: { fileSize: PDF_MAX } }).single("file");
+export const uploadAvatar = multer({
+  storage: makeStorage(),
+  fileFilter,
+  limits: { fileSize: IMG_MAX }
+}).single("picture");
+
+export const uploadEvent = multer({
+  storage: makeStorage(),
+  fileFilter,
+  limits: { fileSize: IMG_MAX }
+}).single("picture");
+
+export const uploadItem = multer({
+  storage: makeStorage(),
+  fileFilter,
+  limits: { fileSize: IMG_MAX }
+}).single("picture");
+
+export const uploadEventFile = multer({
+  storage: makeStorage(),
+  fileFilter: pdfFileFilter,
+  limits: { fileSize: PDF_MAX }
+}).single("file");
 
 export const uploadOl = multer({
-  storage: makeStorage(avatarDir),
+  storage: makeStorage(),
   fileFilter,
   limits: { fileSize: IMG_MAX }
 }).fields([
@@ -137,7 +152,7 @@ export const titleExistingUpdate = async (req, res, next) => {
 export const verifyImageFile = async (req, res, next) => {
   if (!req.file) return next();
 
-  const detected = await fileTypeFromFile(req.file.path);
+  const detected = await fileTypeFromBuffer(req.file.buffer);
   const allowed = ["image/jpeg", "image/png", "image/webp"];
 
   if (!detected || !allowed.includes(detected.mime)) {
@@ -149,55 +164,189 @@ export const verifyImageFile = async (req, res, next) => {
 };
 
 export const verifyImageFileOl = async (req, res, next) => {
-  const files = Object.values(req.files || {}).flat()
+  const files = Object.values(req.files || {}).flat();
 
   const allowed = [
     "image/jpeg",
     "image/png",
     "image/webp"
-  ]
+  ];
 
   try {
     for (const file of files) {
-      const detected = await fileTypeFromFile(file.path)
+      const detected = await fileTypeFromBuffer(file.buffer);
 
       if (!detected || !allowed.includes(detected.mime)) {
-        await fsPromises.unlink(file.path)
-
         return res.status(400).json({
           message: "Le contenu du fichier est invalide"
-        })
+        });
       }
     }
 
-    next()
+    next();
   } catch (error) {
-    console.error("[verifyImageFile]", error)
-
-    // Nettoyage des fichiers déjà uploadés
-    await Promise.all(
-      files.map(async (file) => {
-        try {
-          await fsPromises.unlink(file.path)
-        } catch {}
-      })
-    )
+    console.error("[verifyImageFileOl]", error);
 
     return res.status(500).json({
       message: "Erreur lors de la vérification du fichier"
-    })
+    });
   }
-}
+};
 
 export const verifyPdfFile = async (req, res, next) => {
   if (!req.file) return next();
 
-  const detected = await fileTypeFromFile(req.file.path);
-  // application/pdf = signature magique %PDF en début de fichier
+  const detected = await fileTypeFromBuffer(req.file.buffer);
+
   if (!detected || detected.mime !== "application/pdf") {
-    await fsPromises.unlink(req.file.path);
-    return res.status(400).json({ message: "Le fichier n'est pas un PDF valide" });
+    return res.status(400).json({
+      message: "Le fichier n'est pas un PDF valide"
+    });
   }
 
   next();
+};
+
+export const uploadAvatarToOvh = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    const filename =
+      uniqueSuffix + path.extname(req.file.originalname);
+
+    await uploadToOvh(
+      req.file.buffer,
+      filename,
+      "avatar"
+    );
+
+    req.file.filename = filename;
+
+    next();
+  } catch (error) {
+    console.error("Erreur upload OVH :", error);
+
+    return res.status(500).json({
+      message: "Erreur lors de l'upload de l'image"
+    });
+  }
+};
+
+export const uploadEventToOvh = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    const filename =
+      uniqueSuffix + path.extname(req.file.originalname);
+
+    await uploadToOvh(
+      req.file.buffer,
+      filename,
+      "events"
+    );
+
+    req.file.filename = filename;
+
+    next();
+  } catch (error) {
+    console.error("Erreur upload OVH :", error);
+
+    return res.status(500).json({
+      message: "Erreur lors de l'upload de l'image"
+    });
+  }
+};
+
+export const uploadItemToOvh = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    const filename =
+      uniqueSuffix + path.extname(req.file.originalname);
+
+    await uploadToOvh(
+      req.file.buffer,
+      filename,
+      "items"
+    );
+
+    req.file.filename = filename;
+
+    next();
+  } catch (error) {
+    console.error("Erreur upload OVH :", error);
+
+    return res.status(500).json({
+      message: "Erreur lors de l'upload de l'image"
+    });
+  }
+};
+
+export const uploadEventFileToOvh = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    const filename =
+      uniqueSuffix + path.extname(req.file.originalname);
+
+    await uploadToOvh(
+      req.file.buffer,
+      filename,
+      "events/files"
+    );
+
+    req.file.filename = filename;
+
+    next();
+  } catch (error) {
+    console.error("Erreur upload OVH :", error);
+
+    return res.status(500).json({
+      message: "Erreur lors de l'upload du fichier"
+    });
+  }
+};
+
+export const uploadOlToOvh = async (req, res, next) => {
+  if (!req.files) return next();
+
+  try {
+    const files = Object.values(req.files).flat();
+
+    for (const file of files) {
+      const uniqueSuffix =
+        Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+      const filename =
+        uniqueSuffix + path.extname(file.originalname);
+
+      await uploadToOvh(
+        file.buffer,
+        filename,
+        "avatar"
+      );
+
+      file.filename = filename;
+    }
+
+    next();
+  } catch (error) {
+    console.error("Erreur upload OVH :", error);
+
+    return res.status(500).json({
+      message: "Erreur lors de l'upload des fichiers"
+    });
+  }
 };

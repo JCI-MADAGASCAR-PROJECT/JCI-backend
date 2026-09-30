@@ -1,6 +1,8 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
+
 export const fetchAll = async () => {
     return await prisma.pastPresident.findMany({
         orderBy: {
@@ -37,11 +39,7 @@ export const update = async (name, year, imgUrl, id) =>{
             where: { id: Number(id) }
         });
         if (pp && pp.imgUrl) {
-            const filePath = path.join(
-                process.cwd(),
-                pp.imgUrl.replace(/^[/\\]/, "")    
-            );
-            await fs.unlink(filePath);
+            await deleteFromOvh(pp.imgUrl);
         }
     }
     return await prisma.pastPresident.update({
@@ -62,11 +60,7 @@ export const deletePastPresident = async (id) =>{
     if (!pp) {
     throw new Error("Past president not found");
     }
-    const filePath = path.join(
-        process.cwd(),
-        pp.imgUrl.replace(/^[/\\]/, "")    
-    );
-    await fs.unlink(filePath);
+    await deleteFromOvh(pp.imgUrl);
     return await prisma.pastPresident.delete({
         where:{id:Number(id)}
     })

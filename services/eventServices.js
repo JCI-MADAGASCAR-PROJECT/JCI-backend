@@ -1,7 +1,7 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
-
+import { deleteFromOvh } from "../services/ovhSftp.js"; 
 
 // ✅ Répertoire de base des uploads — utilisé pour valider les chemins avant fs.unlink
 const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
@@ -103,7 +103,7 @@ export const update = async (title, type, imgUrl, content, date, id) => {
             where: { id: Number(id) }
         });
          if (event?.imgUrl) {
-            await safeUnlink(event.imgUrl);
+            await deleteFromOvh(event.imgUrl);
         }
     }
     return await prisma.event.update({
@@ -126,7 +126,7 @@ export const deleteEvent = async (id) => {
     if (!event) {
         throw new Error("Event not found");
         }
-    await safeUnlink(event.imgUrl);
+    await deleteFromOvh(event.imgUrl);
     return await prisma.event.delete({
         where: {id:Number(id) }
     })

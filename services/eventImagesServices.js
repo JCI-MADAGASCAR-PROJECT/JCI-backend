@@ -1,6 +1,7 @@
 import prisma from "../DB/db.config.js"
 import fs from "fs/promises";
 import path from "path";
+import { deleteFromOvh } from "../services/ovhSftp.js";
 
 export const fetchAllByEventId = async (eventId) => {
     return await prisma.eventImage.findMany({
@@ -39,11 +40,7 @@ export const deleteEventImage = async (id) =>{
         if (!eventImage) {
         throw new Error("Event image not found");
         }
-        const filePath = path.join(
-            process.cwd(),
-            eventImage.imgUrl.replace(/^[/\\]/, "")    
-        );
-    await fs.unlink(filePath);
+        await deleteFromOvh(eventImage.imgUrl);
     return await prisma.eventImage.delete({
         where:{id:Number(id)}
     })
