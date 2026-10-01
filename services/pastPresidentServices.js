@@ -1,6 +1,4 @@
 import prisma from "../DB/db.config.js"
-import fs from "fs/promises";
-import path from "path";
 import { deleteFromOvh } from "../services/ovhSftp.js";
 
 export const fetchAll = async () => {
@@ -9,6 +7,10 @@ export const fetchAll = async () => {
             id: "desc"
         }
     });
+};
+
+export const fetchFirst = async () => {
+    return await prisma.pastPresident.findFirst();
 };
 
 export const create = async (name, year, imgUrl) =>{

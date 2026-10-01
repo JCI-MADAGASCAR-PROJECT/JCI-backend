@@ -38,7 +38,9 @@ export const create = async (email, password, role, ol_id) =>{
     if(role == "ADMIN_LOCAL" && !ol_id){
         throw new Error("L'identifiant de l'organisation locale est requis pour le rôle ADMIN_LOCAL");  
     }
-    const existingUser = await fetchByEmail(email); 
+    const existingUser = await prisma.user.findUnique({
+        where: { email }
+    }); 
     if (existingUser) {
         throw new Error("Email deja utilisé. Veuillez choisir un autre email");
     }

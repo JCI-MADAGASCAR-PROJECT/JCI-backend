@@ -10,6 +10,15 @@ export const fetchAll = async (req, res) => {
     }
 }
 
+export const fetchFirst = async (req, res) => {
+    try {
+        await pastPresidentService.fetchFirst();
+        return res.status(200).json({ message: "Past Presidents fetched successfully"});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Past Presidents not fetched !"});
+    }
+}
 
 export const create = async (req, res) => {
     try {

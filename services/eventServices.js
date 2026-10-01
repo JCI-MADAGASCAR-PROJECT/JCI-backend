@@ -1,27 +1,72 @@
 import prisma from "../DB/db.config.js"
-import fs from "fs/promises";
-import path from "path";
 import { deleteFromOvh } from "../services/ovhSftp.js"; 
+import { z } from "zod";
 
-// ✅ Répertoire de base des uploads — utilisé pour valider les chemins avant fs.unlink
-const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
+/* =========================
+   VALIDATION
+========================= */
 
-// ✅ Suppression sécurisée : bloque tout chemin hors du dossier uploads
-const safeUnlink = async (relativeUrl) => {
-    if (!relativeUrl) return;
-    const filePath = path.resolve(process.cwd(), relativeUrl.replace(/^[/\\]/, ""));
-    if (!filePath.startsWith(UPLOAD_DIR)) {
-        console.error("[safeUnlink] Path traversal bloqué :", filePath);
-        throw new Error("Chemin de fichier invalide");
+const nameSchema = z
+    .string()
+    .trim()
+    .min(2, "Le nom doit contenir au moins 2 caractères")
+    .max(50, "Le nom ne doit pas dépasser 50 caractères");
+
+const imgUrlSchema = z
+    .string()
+    .trim()
+    .min(1, "Le chemin de l'image est invalide")
+    .max(500, "Le chemin de l'image est trop long");
+
+const idSchema = z.coerce
+    .number()
+    .int("L'ID doit être un entier")
+    .positive("L'ID doit être positif");
+
+/* =========================
+   HELPERS
+========================= */
+
+const validateId = (id) => {
+    const result = idSchema.safeParse(id);
+
+    if (!result.success) {
+        throw new Error("ID invalide");
     }
-    try {
-        await fs.unlink(filePath);
-    } catch (err) {
-        // Ignorer si le fichier est déjà absent (idempotent)
-        if (err.code !== "ENOENT") throw err;
-    }
+
+    return result.data;
 };
 
+const validateEventData = (title, type, imgUrl, content, date, organisationLocalId) => {
+    const result = z
+        .object({
+            title: nameSchema,
+            type: nameSchema,
+            imgUrl: imgUrlSchema,
+            content: nameSchema,
+            date: z
+                .string()
+                .refine((val) => !isNaN(Date.parse(val)), "Date invalide")
+                .transform((val) => new Date(val)),
+            organisationLocalId: z.coerce.number().int().positive().optional(),
+        })
+        .safeParse({
+            title,
+            type,
+            imgUrl,
+            content,
+            date,
+            organisationLocalId,
+        });
+
+    if (!result.success) {
+        const error = new Error("Données invalides");
+        error.details = result.error.flatten().fieldErrors;
+        throw error;
+    }
+
+    return result.data;
+};
 
 export const fetchAllEventsPaginated = async (page = 1, limit = 20) => {
     const skip = (page - 1) * limit;
@@ -73,54 +118,80 @@ export const fetchAllEventsByNational = async () => {
 };
 
 export const create = async (title, type, imgUrl, content, date, organisationLocalId) => {
+    const validatedData = validateEventData(title, type, imgUrl, content, date, organisationLocalId);
     return await prisma.event.create({
         data: {
-            title,
-            type,
-            imgUrl,
-            content,
-            date: new Date(date),
-            organisationLocalId: Number(organisationLocalId)
+            title: validatedData.title,
+            type: validatedData.type,
+            imgUrl: validatedData.imgUrl,
+            content: validatedData.content,
+            date: validatedData.date,
+            organisationLocalId: validatedData.organisationLocalId,
         }
     })
 }
 
 export const createNational = async (title, type, imgUrl, content, date) =>{
+    const validatedData = z.object({
+        title: z.string().min(1),
+        type: z.string().min(1),
+        imgUrl: z.string().min(1),
+        content: z.string().min(1),
+        date: z
+            .string()
+            .refine((val) => !isNaN(Date.parse(val)), "Date invalide")
+            .transform((val) => new Date(val)),
+    }).safeParse({ title, type, imgUrl, content, date });
+
+    if (!validatedData.success) {
+        const error = new Error("Données invalides");
+        error.details = validatedData.error.flatten().fieldErrors;
+        throw error;
+    }
+
+    const data = validatedData.data;
     return await prisma.event.create({
         data: {
-            title,
-            type,
-            imgUrl,
-            content,
-            date: new Date(date),
+            title: data.title,
+            type: data.type,
+            imgUrl: data.imgUrl,
+            content: data.content,
+            date: data.date,
         }
     })
 }
 
 export const update = async (title, type, imgUrl, content, date, id) => {
+    const eventId = validateId(id);
+    let validateData = z.object({
+        title: z.string().min(1),
+        type: z.string().min(1),
+        content: z.string().min(1),
+        date: z
+            .string()
+            .refine((val) => !isNaN(Date.parse(val)), "Date invalide")
+            .transform((val) => new Date(val)),
+            });
+    validateData = validateData.parse({ title, type, imgUrl, content, date });
     if(imgUrl) {
+        validateData = validateEventData(title, type, imgUrl, content, date);
         const event = await prisma.event.findUnique({
-            where: { id: Number(id) }
+            where: { id: eventId }
         });
-         if (event?.imgUrl) {
+         if (event && event.imgUrl && event.imgUrl !== imgUrl) {
             await deleteFromOvh(event.imgUrl);
         }
     }
     return await prisma.event.update({
-        where: { id:Number(id) },
-        data: {
-            title,
-            type,
-            imgUrl,
-            content,
-            date: new Date(date),
-        }
+        where: { id:eventId },
+        data: validateData
     })
 }
 
 export const deleteEvent = async (id) => {
+    const eventId = validateId(id);
     const event = await prisma.event.findUnique({
-        where: { id: Number(id) }
+        where: { id: eventId }
     });
 
     if (!event) {
@@ -128,6 +199,6 @@ export const deleteEvent = async (id) => {
         }
     await deleteFromOvh(event.imgUrl);
     return await prisma.event.delete({
-        where: {id:Number(id) }
+        where: {id:eventId }
     })
 }

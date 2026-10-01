@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create, deletePastPresident, fetchAll, update } from "../controllers/pastPresidentControllers.js";
+import { create, deletePastPresident, fetchAll, update, fetchFirst} from "../controllers/pastPresidentControllers.js";
 import { uploadAvatar, addImagePathAvatar,verifyImageFile, uploadAvatarToOvh } from "../middleware/uploadMiddleware.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -19,6 +19,20 @@ const router = Router();
  */
 router.get("/", fetchAll);
 
+/**
+ * @swagger
+ * /api/v1/past-presidents/first:
+ *   get:
+ *     summary: Get the first past president
+ *     tags:
+ *       - Past Presidents
+ *     responses:
+ *       200:
+ *         description: The first past president
+ *       500:
+ *         description: Server error
+ */
+router.get("/first",fetchFirst);
 
 /**
  * @swagger

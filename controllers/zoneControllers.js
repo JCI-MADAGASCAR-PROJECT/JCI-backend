@@ -45,7 +45,7 @@ export const update = async (req, res) => {
         return res.status(200).json({message:"Zone mise à jour avec succès !"});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Erreur lors de la mise à jour de la zone !"});
+        return res.status(500).json({ message: error.message});
     }
 }
 export const deleteZone = async (req, res) => {

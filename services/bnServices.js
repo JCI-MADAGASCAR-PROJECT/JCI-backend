@@ -74,6 +74,7 @@ const validateMemberData = (name, firstName, title, imgUrl) => {
     return result.data;
 };
 
+
 /*
  * Vérifie que le fichier à supprimer se trouve
  * bien dans le dossier uploads.
@@ -122,26 +123,29 @@ export const create = async (name, firstName, title, imgUrl) => {
    UPDATE
 ========================= */
 
-export const update = async (
-    name,
-    firstName,
-    title,
-    imgUrl,
-    id
-) => {
+export const update = async (name, firstName, title, imgUrl, id) => {
     const memberId = validateId(id);
 
-    const validatedData = validateMemberData(
-        name,
-        firstName,
-        title,
-        imgUrl
-    );
+    let validatedData = z.object({
+            name: nameSchema,
+            firstName: firstNameSchema,
+            title: titleSchema,
+        }).safeParse({
+            name,
+            firstName,
+            title,
+        });
+
+    if (!validatedData.success) {
+        const error = new Error("Données invalides");
+        error.details = validatedData.error.flatten().fieldErrors;
+        throw error;
+    }
+    
+    validatedData = validatedData.data;
 
     const member = await prisma.bureauNational.findUnique({
-        where: {
-            id: memberId,
-        },
+        where: { id: memberId },
     });
 
     if (!member) {
@@ -151,9 +155,7 @@ export const update = async (
     const existingTitle = await prisma.bureauNational.findFirst({
         where: {
             title: validatedData.title,
-            NOT: {
-                id: memberId,
-            },
+            NOT: { id: memberId },
         },
     });
 
@@ -161,18 +163,22 @@ export const update = async (
         throw new Error("Le titre est déjà utilisé");
     }
 
-    /*
-     * On supprime l'ancienne image uniquement
-     * lorsqu'une nouvelle image est fournie.
-     */
-    if (imgUrl && member.imgUrl && member.imgUrl !== imgUrl) {
-        await deleteFromOvh(member.imgUrl);
+    // On ne touche à l'image que si une nouvelle est fournie
+    if (imgUrl) {
+        validatedData = validateMemberData(
+            name,
+            firstName,
+            title,
+            imgUrl
+        );
+        if (member.imgUrl && member.imgUrl !== imgUrl) {
+            await deleteFromOvh(member.imgUrl);
+        }
+        
     }
 
     return await prisma.bureauNational.update({
-        where: {
-            id: memberId,
-        },
+        where: { id: memberId },
         data: validatedData,
     });
 };
