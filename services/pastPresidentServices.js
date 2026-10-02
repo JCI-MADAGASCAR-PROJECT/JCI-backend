@@ -4,7 +4,7 @@ import { deleteFromOvh } from "../services/ovhSftp.js";
 export const fetchAll = async () => {
     return await prisma.pastPresident.findMany({
         orderBy: {
-            id: "desc"
+            year: "desc"
         }
     });
 };
