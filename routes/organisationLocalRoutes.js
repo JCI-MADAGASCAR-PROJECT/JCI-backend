@@ -145,7 +145,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadOl,ver
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
+router.put("/:id/zone/:zoneId",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
             requireOrganisationAccess(async (req) => Number(req.params.id)),
             uploadOl,verifyImageFileOl, uploadOlToOvh, addImagePathOlMap, addImagePathOlLogo, update);
 /**
@@ -170,7 +170,7 @@ router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCA
  *       500:
  *         description: Server error
  */
-router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),
+router.delete("/:id/zone/:zoneId",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),
             requireOrganisationAccess(async (req) => Number(req.params.id)),
             deleteOrganisationLocal);
 

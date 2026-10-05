@@ -30,7 +30,7 @@ const validateId = (id) => {
     const result = idSchema.safeParse(id);
 
     if (!result.success) {
-        throw new Error("ID invalide");
+        throw new Error("ID invalide" + id);
     }
 
     return result.data;

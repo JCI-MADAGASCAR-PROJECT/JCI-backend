@@ -191,8 +191,8 @@ router.post("/national",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMI
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,verifyImageFile, uploadEventToOvh,
-            requireOrganisationAccess(async (req) => Number(req.body.organisationLocalId)),
+router.put("/:id/organisation-local/:organisationLocalId",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),uploadEvent,verifyImageFile, uploadEventToOvh,
+            requireOrganisationAccess(async (req) => Number(req.params.organisationLocalId)),
              addImagePathEvents, update);
 /**
  * @swagger
@@ -216,7 +216,7 @@ router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCA
  *       500:
  *         description: Server error
  */
-router.delete("/:id",
+router.delete("/:id/organisation-local/:organisationLocalId",
     protect,
     authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"),
     requireOrganisationAccess(async (req) => {

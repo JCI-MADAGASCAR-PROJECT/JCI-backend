@@ -122,6 +122,6 @@ router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvat
  *       500:
  *         description: Server error
  */
-router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteZonePresident);
+router.delete("/:id/:zoneId",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteZonePresident);
 
 export default router;

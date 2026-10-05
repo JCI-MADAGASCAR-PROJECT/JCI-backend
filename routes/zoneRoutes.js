@@ -99,7 +99,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, verifyImageFile, uploadAvatarToOvh, addImagePathAvatar, update);
+router.put("/:id/name/:zoneName",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvatar, verifyImageFile, uploadAvatarToOvh, addImagePathAvatar, update);
 /**
  * @swagger
  * /api/v1/zones/{id}:
@@ -122,6 +122,6 @@ router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"), uploadAvat
  *       500:
  *         description: Server error
  */
-router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteZone);
+router.delete("/:id/:zoneName",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL"),deleteZone);
 
 export default router;

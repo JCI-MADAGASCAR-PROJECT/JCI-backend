@@ -84,7 +84,7 @@ router.post("/",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"
  *       500:
  *         description: Server error
  */
-router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), update);
+router.put("/:id/organisation-local/:organisationLocalId",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), update);
 /**
  * @swagger
  * /api/v1/organisation-locales/contents/{id}:
@@ -107,6 +107,6 @@ router.put("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCA
  *       500:
  *         description: Server error
  */
-router.delete("/:id",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), deleteOrganisationLocalContent);
+router.delete("/:id/organisation-local/:organisationLocalId",protect,authorize("SUPER_ADMIN", "ADMIN_NATIONAL", "ADMIN_LOCAL"), deleteOrganisationLocalContent);
 
 export default router;
