@@ -1,13 +1,23 @@
 import * as eventService from "../services/eventServices.js"
 import cache from "../utils/cache.js";
 
+export const invalidateEventsPages = () => {
+    const keys = cache.keys();
+
+    for (const key of keys) {
+        if (key.startsWith("events_page_")) {
+            cache.del(key);
+        }
+    }
+};
+
 export const fetchAllEvents = async (req, res) => {
     try {
-        const CACHE_KEY = `events_page_all`;
-        const CACHE_TTL = 60 * 60 * 0.5; // 30 minutes
-        const cached = cache.get(CACHE_KEY);
         const page  = Math.max(1, parseInt(req.query.page)  || 1);
         const limit = Math.min(100, parseInt(req.query.limit) || 20);
+        const CACHE_KEY = `events_page_${page}_limit_${limit}`;
+        const CACHE_TTL = 60 * 60 * 0.5; // 30 minutes
+        const cached = cache.get(CACHE_KEY);
         if (cached !== undefined) {
             return res.status(200).json(cached);
         }
@@ -23,7 +33,7 @@ export const fetchAllEvents = async (req, res) => {
 export const fetchAllActuEvents = async (req, res) => {
     try {
         const CACHE_KEY = "latest_4_events";
-        const CACHE_TTL = 60 * 60 * 6; // 3 heures
+        const CACHE_TTL = 60 * 60 * 6; // 6 heures
         const cached = cache.get(CACHE_KEY);
         if (cached !== undefined) {
             return res.status(200).json(cached);
@@ -46,7 +56,7 @@ export const fetchAllEventsByOrganisationLocal = async (req, res) => {
             return res.status(400).json({ message: "Organisation Local ID est requis" });
         }
         const CACHE_KEY = `events_${olId}`;
-        const CACHE_TTL = 60 * 60 * 6; // 3 heures
+        const CACHE_TTL = 60 * 60 * 6; // 6 heures
         const cached = cache.get(CACHE_KEY);
         if (cached !== undefined) {
             return res.status(200).json(cached);
@@ -65,7 +75,7 @@ export const fetchAllEventsByOrganisationLocal = async (req, res) => {
 export const fetchAllEventsByNational = async (req, res) => {
     try {
         const CACHE_KEY = "events_national";
-        const CACHE_TTL = 60 * 60 * 6; // 3 heures
+        const CACHE_TTL = 60 * 60 * 6; // 6 heures
         const cached = cache.get(CACHE_KEY);
         if (cached !== undefined) {
             return res.status(200).json(cached);
@@ -92,7 +102,7 @@ export const create = async (req, res) => {
         console.log(`Events cache for Organisation Local ID ${organisationLocalId} cleared after creation.`);
         cache.del("latest_4_events");
         console.log("Events cache for latest 4 events cleared after creation.");
-        cache.del("events_page_all");
+        invalidateEventsPages();
         console.log("Events cache for all events page cleared after creation.");
         return res.status(201).json({message:"Evenement créé avec succès !"});
     } catch (error) {
@@ -111,7 +121,7 @@ export const createNational = async (req, res) => {
         console.log("Events cache for National cleared after creation.");
         cache.del("latest_4_events");
         console.log("Events cache for latest 4 events cleared after creation.");
-        cache.del("events_page_all");
+        invalidateEventsPages();
         console.log("Events cache for all events page cleared after creation.");
         return res.status(201).json({message:"Evenement créé avec succès !"});
     } catch (error) {
@@ -130,8 +140,8 @@ export const update = async (req, res) => {
 
         cache.del("latest_4_events");
         console.log("Events cache for latest 4 events cleared after update.");
-        cache.del("events_page_all");
-        console.log("Events cache for all events page cleared after update.");
+        cache.del(`event_${id}`);
+        console.log(`Event cache for Event ID ${id} cleared after update.`);
         if (organisationLocalId != "null") {
             cache.del(`events_${organisationLocalId}`);
             console.log(`Events cache for Organisation Local ID ${organisationLocalId} cleared after update.`);
@@ -140,6 +150,8 @@ export const update = async (req, res) => {
             cache.del("events_national");
             console.log("Events cache for National cleared after update.");
         }
+        invalidateEventsPages();
+        console.log("Events cache for all events page cleared after update.");
         return res.status(200).json({message:"Evenement mis à jour avec succès !"});
     } catch (error) {
         console.log(error);
@@ -174,10 +186,10 @@ export const deleteEvent = async (req, res) => {
         const id = req.params.id;
         const organisationLocalId = req.params.organisationLocalId;
         await eventService.deleteEvent(id);
-        cache.del("events_page_all");
-        console.log("Events cache for all events page cleared after deletion.");
         cache.del("latest_4_events");
         console.log("Events cache for latest 4 events cleared after deletion.");
+        cache.del(`event_${id}`);
+        console.log(`Event cache for Event ID ${id} cleared after deletion.`);
         if (organisationLocalId != "null") {
             cache.del(`events_${organisationLocalId}`);
             console.log(`Events cache for Organisation Local ID ${organisationLocalId} cleared after deletion.`);
@@ -186,6 +198,8 @@ export const deleteEvent = async (req, res) => {
             cache.del("events_national");
             console.log("Events cache for National cleared after deletion.");
         }
+        invalidateEventsPages();
+        console.log("Events cache for all events page cleared after deletion.");
         return res.status(200).json({message:"Evenement supprimé avec succès !"});
     } catch (error) {
         console.log(error);
