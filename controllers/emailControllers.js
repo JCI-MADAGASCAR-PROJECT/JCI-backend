@@ -30,8 +30,8 @@ export const sendEmail = async (req, res) => {
     const { name, email, phone, message } = result.data;
     try {
         const { data, error } = await resend.emails.send({
-        from: "Acme <onboarding@resend.dev>",
-        to: ["dirnum@jcimada.org"],
+        from: "JCI MADAGASCAR <contact@contact.jcimadagascar.org>",
+        to: ["contact@jcimada.org"],
         subject: `JCI - Nouveau message de contact `,
         html: `
             <div style="margin:0; padding:0; background-color:#f5f5f5; font-family:Arial, Helvetica, sans-serif; color:#0C091E;">
