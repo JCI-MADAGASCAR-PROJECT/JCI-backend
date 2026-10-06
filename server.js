@@ -17,7 +17,7 @@ import routes from "./routes/index.js"
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.set("trust proxy", 1);
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -35,6 +35,7 @@ app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true,
 }));
+
 
 app.use("/api/v1/", limiter);
 
