@@ -8,6 +8,7 @@ import { fileTypeFromBuffer } from "file-type";
 import fsPromises from "fs/promises";
 import prisma from "../DB/db.config.js";
 import { uploadToOvh } from "../services/ovhSftp.js";
+import sharp from "sharp";
 
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -25,6 +26,18 @@ const eventsFileDir = path.join(picsDir, "events/files");
 [avatarDir, eventsDir, eventsFileDir, itemsDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
+
+
+const optimizeImage = async (buffer, width = 1920) => {
+  return sharp(buffer)
+    .rotate()
+    .resize({
+      width,
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 82 })
+    .toBuffer();
+};
 
 
 // Fichier accepté uniquement si image
@@ -214,11 +227,12 @@ export const uploadAvatarToOvh = async (req, res, next) => {
     const uniqueSuffix =
       Date.now() + "-" + Math.round(Math.random() * 1e9);
 
-    const filename =
-      uniqueSuffix + path.extname(req.file.originalname);
+    const filename = `${uniqueSuffix}.webp`;
+
+    const optimizedBuffer = await optimizeImage(req.file.buffer, 200);
 
     await uploadToOvh(
-      req.file.buffer,
+      optimizedBuffer,
       filename,
       "avatar"
     );
@@ -242,11 +256,12 @@ export const uploadEventToOvh = async (req, res, next) => {
     const uniqueSuffix =
       Date.now() + "-" + Math.round(Math.random() * 1e9);
 
-    const filename =
-      uniqueSuffix + path.extname(req.file.originalname);
+    const filename = `${uniqueSuffix}.webp`;
+
+    const optimizedBuffer = await optimizeImage(req.file.buffer, 1600);
 
     await uploadToOvh(
-      req.file.buffer,
+      optimizedBuffer,
       filename,
       "events"
     );
@@ -270,14 +285,15 @@ export const uploadItemToOvh = async (req, res, next) => {
     const uniqueSuffix =
       Date.now() + "-" + Math.round(Math.random() * 1e9);
 
-    const filename =
-      uniqueSuffix + path.extname(req.file.originalname);
+    const filename = `${uniqueSuffix}.webp`;
 
-    await uploadToOvh(
-      req.file.buffer,
-      filename,
-      "items"
-    );
+      const optimizedBuffer = await optimizeImage(req.file.buffer, 1200);
+
+      await uploadToOvh(
+        optimizedBuffer,
+        filename,
+        "items"
+      );
 
     req.file.filename = filename;
 
@@ -329,11 +345,17 @@ export const uploadOlToOvh = async (req, res, next) => {
       const uniqueSuffix =
         Date.now() + "-" + Math.round(Math.random() * 1e9);
 
-      const filename =
-        uniqueSuffix + path.extname(file.originalname);
+      const width = file.fieldname === "logoImg" ? 800 : 1200;
+
+      const filename = `${uniqueSuffix}.webp`;
+
+      const optimizedBuffer = await optimizeImage(
+        file.buffer,
+        width
+      );
 
       await uploadToOvh(
-        file.buffer,
+        optimizedBuffer,
         filename,
         "avatar"
       );

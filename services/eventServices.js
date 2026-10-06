@@ -23,6 +23,12 @@ const idSchema = z.coerce
     .int("L'ID doit être un entier")
     .positive("L'ID doit être positif");
 
+const contentSchema = z
+    .string()
+    .trim()
+    .min(1, "Le contenu ne peut pas être vide")
+    .max(1000, "Le contenu ne doit pas dépasser 1000 caractères");
+
 /* =========================
    HELPERS
 ========================= */
@@ -43,7 +49,7 @@ const validateEventData = (title, type, imgUrl, content, date, organisationLocal
             title: nameSchema,
             type: nameSchema,
             imgUrl: imgUrlSchema,
-            content: nameSchema,
+            content: contentSchema,
             date: z
                 .string()
                 .refine((val) => !isNaN(Date.parse(val)), "Date invalide")
